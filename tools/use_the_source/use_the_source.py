@@ -18,6 +18,7 @@ grafts_to_site_packages = (
 	("switch/pylib", "stack"),
 	("ws/command", "stack/commands"),
 	("ws/pylib", "stack"),
+	("graph_ql", "stack/graph_ql"),
 	("ws-client/pylib", "")
 )
 
