@@ -5,14 +5,28 @@
 # @copyright@
 
 import graphene
-from graph_ql import db
-from graph_ql.type import Host
+from stack.graph_ql import db
 from collections import namedtuple
+
+class Host(graphene.ObjectType):
+	id: graphene.Int()
+	name = graphene.String()
+	rack = graphene.String()
+	rank = graphene.String()
+	appliance = graphene.String()
+	os = graphene.String()
+	box = graphene.String()
+	environment = graphene.String()
+	osaction = graphene.String()
+	installaction = graphene.String()
+	comment = graphene.String()
+	metadata = graphene.String()
+	# interfaces = graphene.List(lambda: Interface)
 
 class Query(graphene.ObjectType):
 	all_hosts = graphene.List(Host)
 
-	def resolve_all_hosts(self, info, first=None, skip=None, **kwargs):
+	def resolve_all_hosts(self, info, **kwargs):
 		db.execute(
 			"""
 			select n.id, n.name, n.rack, n.rank, n.comment, n.metadata,
@@ -46,11 +60,5 @@ class Query(graphene.ObjectType):
 			],
 		)
 		hosts = [Host(*host) for host in hosts]
-
-		if skip:
-				hosts = hosts[skip::]
-
-		if first:
-				hosts = hosts[:first]
 
 		return hosts
