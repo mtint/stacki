@@ -5,7 +5,7 @@
 # @copyright@
 
 import graphene
-from stack.graph_ql.connections import db
+from stack.graph_ql import db
 from collections import namedtuple
 
 class Host(graphene.ObjectType):
@@ -23,7 +23,7 @@ class Host(graphene.ObjectType):
 	metadata = graphene.String()
 	# interfaces = graphene.List(lambda: Interface)
 
-class Query(graphene.ObjectType):
+class Query:
 	all_hosts = graphene.List(Host)
 
 	def resolve_all_hosts(self, info, **kwargs):

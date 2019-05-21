@@ -1667,6 +1667,15 @@ class Command:
 				if p.returncode == 0:
 					self.colors[key]['code'] = o
 
+	def graphql(self, query_string, variables):
+		from stack.stackigraphql import schema
+
+		result = schema.execute(query_string, variables = variables)
+		if result.errors:
+			raise Exception(errors[0].message)
+		
+		return result.data
+
 	def fillParams(self, names, params=None):
 		"""
 		Returns a list of variables with either default values of the

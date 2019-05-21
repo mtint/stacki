@@ -5,7 +5,6 @@
 # @copyright@
 
 import graphene
-from stack.graph_ql.connections import db
 from collections import namedtuple
 
 class Box(graphene.ObjectType):
@@ -13,3 +12,6 @@ class Box(graphene.ObjectType):
     name = graphene.String()
     # os = graphene.Field(lambda: Os)
     # pallets = graphene.List(lambda: Pallet)
+
+class Query():
+	boxes = graphene.Field()
