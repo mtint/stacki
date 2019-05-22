@@ -13,5 +13,5 @@ class Box(graphene.ObjectType):
     # os = graphene.Field(lambda: Os)
     # pallets = graphene.List(lambda: Pallet)
 
-class Query():
+class Query:
 	boxes = graphene.Field()

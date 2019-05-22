@@ -49,9 +49,9 @@ def connect_db(username="apache", passwd=""):
 db = connect_db()
 
 
-from stack.graph_ql.resolvers import HostResolver
+from stack.graph_ql.resolvers import HostResolver, AttributeResolver
 
-class Query(HostResolver.Query, graphene.ObjectType):
+class Query(HostResolver.Query, AttributeResolver.Query, graphene.ObjectType):
 	pass
 
 schema = graphene.Schema(query=Query)
