@@ -51,7 +51,9 @@ db = connect_db()
 
 from stack.graph_ql.resolvers import HostResolver, AttributeResolver
 
-class Query(HostResolver.Query, AttributeResolver.Query, graphene.ObjectType):
+# TODO: Import all the Queries and Mutations dynamically
+# TODO: Filter out duplicate resolvers
+class RootQuery(HostResolver.Query, AttributeResolver.Query, graphene.ObjectType):
 	pass
 
-schema = graphene.Schema(query=Query)
+schema = graphene.Schema(query=RootQuery)
