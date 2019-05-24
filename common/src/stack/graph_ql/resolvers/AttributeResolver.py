@@ -5,7 +5,7 @@
 # @copyright@
 
 import graphene
-from stack.graph_ql import db
+from stack.db import db
 from collections import namedtuple
 
 
@@ -35,6 +35,7 @@ class HostAttribute(graphene.ObjectType):
 	shadow = graphene.String()
 
 class ApplianceAttribute(graphene.ObjectType):
+	"""Attributes with the appliance scope"""
 	class Meta:
 		interfaces = (Attribute, )
 

@@ -5,7 +5,7 @@
 # @copyright@
 
 import graphene
-from stack.graph_ql import db
+from stack.db import db
 from collections import namedtuple
 
 class Host(graphene.ObjectType):

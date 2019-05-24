@@ -43,6 +43,7 @@ from stack.exception import (
 from stack.bool import str2bool, bool2str
 from stack.util import flatten
 import stack.util
+from stack.graph_ql import schema
 
 
 _logPrefix = ''
@@ -1668,11 +1669,12 @@ class Command:
 					self.colors[key]['code'] = o
 
 	def graphql(self, query_string, variables):
-		from stack.stackigraphql import schema
+		"""
+		"""
 
-		result = schema.execute(query_string, variables = variables)
+		result = schema.execute(query_string, variables=variables)
 		if result.errors:
-			raise Exception(errors[0].message)
+			raise Exception(result.errors[0].message)
 		
 		return result.data
 

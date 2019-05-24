@@ -5,7 +5,7 @@
 # @copyright@
 
 import graphene
-from collections import namedtuple
+from stack.db import db
 
 class Box(graphene.ObjectType):
     id: graphene.Int()

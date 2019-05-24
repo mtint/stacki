@@ -5,8 +5,7 @@
 # @copyright@
 
 import graphene
-from stack.graph_ql.connections import db
-from collections import namedtuple
+from stack.db import db
 
 class Os(graphene.ObjectType):
     id = graphene.Int()
