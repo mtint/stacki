@@ -5,6 +5,8 @@
 # @copyright@
 
 import graphene
+from promise import Promise
+from promise.dataloader import DataLoader
 from stack.db import db
 from collections import namedtuple
 
@@ -29,9 +31,10 @@ class Query:
 	def resolve_all_hosts(self, info, **kwargs):
 		db.execute(
 			"""
-			select n.id, n.name, n.rack, n.rank, n.comment, n.metadata,
-			a.name as appliance, o.name as os, b.name as box,
-			e.name as environment, bno.name as osaction, bni.name as installaction
+			select n.id as id, n.name as name, n.rack as rack, n.rank as rank,
+			n.comment as comment, n.metadata as metadata,	a.name as appliance,
+			o.name as os, b.name as box, e.name as environment,
+			bno.name as osaction, bni.name as installaction
 			from nodes n
 			left join appliances a   on n.appliance     = a.id
 			left join boxes b        on n.box           = b.id
@@ -42,4 +45,4 @@ class Query:
 			"""
 		)
 
-		return [Host(*host) for host in db.fetchall()]
+		return [Host(**host) for host in db.fetchall()]

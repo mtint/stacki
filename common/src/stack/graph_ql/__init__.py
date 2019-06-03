@@ -5,10 +5,19 @@
 # @copyright@
 
 import graphene
+from pathlib import Path
+import importlib
+
+
+resolvers = Path('resolvers')
+resolvers = [resolver.stem for resolver in resolvers.glob('*Resolver.py')]
+# Queries = [importlib.import_module(f'resolvers.{resolver}').Query for resolver in resolvers]
+
 from stack.graph_ql.resolvers import HostResolver, AttributeResolver
 
 # TODO: Import all the Queries and Mutations dynamically
 # TODO: Filter out duplicate resolvers
+# class RootQuery(*Queries, graphene.ObjectType):
 class RootQuery(HostResolver.Query, AttributeResolver.Query, graphene.ObjectType):
 	pass
 

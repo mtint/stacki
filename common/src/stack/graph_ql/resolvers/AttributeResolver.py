@@ -10,6 +10,7 @@ from collections import namedtuple
 
 
 class Attribute(graphene.Interface):
+	# TODO: The 'type' variable should be renamed
 	type = graphene.String()
 	scope = graphene.String()
 	attr = graphene.String()
@@ -57,28 +58,29 @@ class Query:
 				"Attribute", ["scope", "attr", "value", "shadow", "scope_id"]
 		)
 
-		attrs = [Attribute(*attr) for attr in attributes]
+		attrs = [Attribute(**attr) for attr in attributes]
 
 		return attrs
 
 	def resolve_host_attributes(self, info, **kwargs):
 		db.execute(
 		"""
-		select false, scope, attr, value, name
+		select false as type, scope, attr, value, name
 		from attributes, nodes n
 		where scope = 'host' and scopeid = n.id 
 		"""
 		)
 
-		return [HostAttribute(*attr) for attr in db.fetchall()]
+		return [HostAttribute(**attr) for attr in db.fetchall()]
 
 	def resolve_appliance_attributes(self, info, **kwargs):
 		db.execute(
 		"""
-		select false, att.scope, att.attr, value, app.name
+		select false as type, att.scope as scope,
+		att.attr as attr, value, app.name as appliance
 		from attributes att, appliances app
 		where att.scope = 'appliance' and att.scopeid = app.id
 		"""
 		)
 
-		return [ApplianceAttribute(*attr) for attr in db.fetchall()]
+		return [ApplianceAttribute(**attr) for attr in db.fetchall()]

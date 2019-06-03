@@ -43,6 +43,6 @@ def connect_db(username="apache", passwd=""):
 			passwd=passwd,
 			autocommit=True,
 		)
-	return db.cursor()
+	return db.cursor(pymysql.cursors.DictCursor)
 
 db = connect_db()

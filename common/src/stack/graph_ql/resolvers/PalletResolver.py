@@ -16,3 +16,6 @@ class Pallet(graphene.ObjectType):
 		os = graphene.String()
 		url = graphene.String()
 		# boxes = graphene.Field(lambda: Box)
+
+class Query:
+	pass

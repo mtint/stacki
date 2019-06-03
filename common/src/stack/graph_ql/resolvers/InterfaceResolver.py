@@ -22,3 +22,6 @@ class Interface(graphene.ObjectType):
     options = graphene.String()
     channel = graphene.String()
     main = graphene.Int()
+
+class Query:
+	pass

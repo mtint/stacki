@@ -10,3 +10,6 @@ from stack.db import db
 class Os(graphene.ObjectType):
     id = graphene.Int()
     name = graphene.String()
+
+class Query:
+	pass

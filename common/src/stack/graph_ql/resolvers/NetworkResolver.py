@@ -17,3 +17,6 @@ class Network(graphene.ObjectType):
     zone = graphene.String()
     dns = graphene.String()
     pxe = graphene.String()
+
+class Query:
+	pass

@@ -14,4 +14,5 @@ class Box(graphene.ObjectType):
     # pallets = graphene.List(lambda: Pallet)
 
 class Query:
-	boxes = graphene.Field()
+	pass
+	# boxes = graphene.Field()
