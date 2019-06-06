@@ -8,7 +8,7 @@ import graphene
 from stack.db import db
 
 class Pallet(graphene.ObjectType):
-		id: graphene.Int()
+		id = graphene.Int()
 		name = graphene.String()
 		version = graphene.String()
 		release = graphene.String()
@@ -18,4 +18,12 @@ class Pallet(graphene.ObjectType):
 		# boxes = graphene.Field(lambda: Box)
 
 class Query:
-	pass
+	all_pallets = graphene.List(Pallet)
+
+	def resolve_all_pallets(self, info):
+		db.execute("""
+		select id, name, version, rel as 'release', arch, os, url
+		from rolls
+		""")
+
+		return [Pallet(**pallet) for pallet in db.fetchall()]

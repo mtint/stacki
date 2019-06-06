@@ -8,11 +8,20 @@ import graphene
 from stack.db import db
 
 class Box(graphene.ObjectType):
-    id: graphene.Int()
+    id = graphene.Int()
     name = graphene.String()
-    # os = graphene.Field(lambda: Os)
+    os = graphene.String()
+		# TODO: Pallets
     # pallets = graphene.List(lambda: Pallet)
 
 class Query:
-	pass
-	# boxes = graphene.Field()
+	all_boxes = graphene.List(Box)
+
+	def resolve_all_boxes(self, info):
+		db.execute("""
+		select b.id as id, b.name as name, o.name as os
+		from boxes b, oses o
+		where b.os = o.id
+		""")
+
+		return [Box(**box) for box in db.fetchall()]

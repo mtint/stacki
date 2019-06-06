@@ -12,4 +12,11 @@ class Os(graphene.ObjectType):
     name = graphene.String()
 
 class Query:
-	pass
+	all_oses = graphene.List(Os)
+
+	def resolve_all_oses(self, info):
+		db.execute("""
+		select id, name from oses
+		""")
+
+		return [Os(**os) for os in db.fetchall()]

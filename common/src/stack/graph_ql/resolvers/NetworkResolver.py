@@ -8,8 +8,8 @@ import graphene
 from stack.db import db
 
 class Network(graphene.ObjectType):
-    id: graphene.Int()
-    network = graphene.String()
+    id = graphene.Int()
+    name = graphene.String()
     address = graphene.String()
     mask = graphene.String()
     gateway = graphene.String()
@@ -19,4 +19,12 @@ class Network(graphene.ObjectType):
     pxe = graphene.String()
 
 class Query:
-	pass
+	all_networks = graphene.List(Network)
+
+	def resolve_all_networks(self, info):
+		db.execute("""
+		select id, name, address, mask, gateway, mtu, zone, dns, pxe
+		from subnets
+		""")
+
+		return [Network(**network) for network in db.fetchall()]
