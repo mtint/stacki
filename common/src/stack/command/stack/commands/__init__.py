@@ -1668,9 +1668,11 @@ class Command:
 				if p.returncode == 0:
 					self.colors[key]['code'] = o
 
-	def graphql(self, query_string, variables):
+	def graphql(self, query_string, variables = None):
 		"""
 		"""
+		if not variables:
+			variables = {}
 
 		result = schema.execute(query_string, variables=variables)
 		if result.errors:

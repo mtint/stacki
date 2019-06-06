@@ -21,6 +21,7 @@ from stack.graph_ql.resolvers import (
 	NetworkResolver,
 	OSResolver,
 	PalletResolver,
+	ApplianceResolver,
 )
 
 # TODO: Import all the Queries and Mutations dynamically
@@ -34,6 +35,7 @@ class RootQuery(
 	NetworkResolver.Query,
 	OSResolver.Query,
 	PalletResolver.Query,
+	ApplianceResolver.Query,
 	graphene.ObjectType,
 ):
 		pass
