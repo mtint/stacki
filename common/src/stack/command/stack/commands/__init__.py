@@ -43,7 +43,10 @@ from stack.exception import (
 from stack.bool import str2bool, bool2str
 from stack.util import flatten
 import stack.util
-from stack.graph_ql import schema
+try:
+	from stack.graph_ql import schema
+except ImportError:
+	pass
 
 
 _logPrefix = ''
@@ -1677,7 +1680,7 @@ class Command:
 		result = schema.execute(query_string, variables=variables)
 		if result.errors:
 			raise Exception(result.errors[0].message)
-		
+
 		return result.data
 
 	def fillParams(self, names, params=None):
