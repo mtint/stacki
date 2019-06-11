@@ -11,6 +11,8 @@ DEPENDS.DIRS	= resolvers server
 
 include $(STACKBUILD)/etc/CCRules.mk
 
+bootstrap: install-rpm
+
 build:
 
 install::

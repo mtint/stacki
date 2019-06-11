@@ -10,6 +10,8 @@ ROLLROOT	= ../../../..
 
 include $(STACKBUILD)/etc/CCRules.mk
 
+bootstrap: install-rpm
+
 build:
 
 install::
