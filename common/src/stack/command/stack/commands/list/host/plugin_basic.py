@@ -7,7 +7,7 @@
 import stack.commands
 
 
-class Plugin(stack.commands.Plugin):
+class Plugin(stack.commands.Plugin, stack.commands.Command):
 
 	def provides(self):
 		return 'basic'
@@ -26,34 +26,34 @@ class Plugin(stack.commands.Plugin):
 			# of hosts to change and keeps the mq happy -- doesn't
 			# break the status in 'list host'.
 			keys.append('id')
-			for name, id in self.db.select('name, id from nodes'):
-				if name in host_info:
-					host_info[name] = [ id ]
 
-		for row in self.db.select(
-			"""
-			n.name, n.rack, n.rank, 
-			a.name,
-			o.name, b.name, 
-			e.name, 
-			bno.name, bni.name from 
-			nodes n 
-			left join appliances a   on n.appliance     = a.id
-			left join boxes b        on n.box           = b.id 
-			left join environments e on n.environment   = e.id 
-			left join bootnames bno  on n.osaction      = bno.id 
-			left join bootnames bni  on n.installaction = bni.id
-			left join oses o	 on b.os            = o.id
-			"""):
+		rows = self.graphql(query_string = """
+			query hosts($expanded: Boolean!) {
+							allHosts {
+											id @include(if: $expanded)
+											name
+											rack
+											rank
+											appliance
+											os
+											box
+											environment
+											osaction
+											installaction
+							}
+			}
+			""", variables = {"expanded": expanded})
 
-			if row[0] in host_info:
-				host_info[row[0]].extend(row[1:])
+		for host in rows['allHosts']:
+			host_name = host.pop('name')
+			host_values = list(host.values())
+			if host_name in host_info:
+				host_info[host_name].extend(host_values)
 
 		keys.extend(['rack', 'rank',
-			     'appliance',
-			     'os', 'box',
-			     'environment',
-			     'osaction', 'installaction'])
-
+					 'appliance',
+					 'os', 'box',
+					 'environment',
+					 'osaction', 'installaction'])
 		return { 'keys' : keys, 'values': host_info }
 
