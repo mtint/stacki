@@ -57,10 +57,7 @@ Vagrant.configure("2") do |config|
 
       config.vm.synced_folder ".cache", "/export/isos", type: "virtualbox"
       config.vm.synced_folder "reports", "/export/reports", type: "virtualbox"
-      config.vm.synced_folder "/Users/mb250136/development/tdc-infrastructure/test-framework/test-suites", "/export/test-suites", type: "virtualbox"
-      config.vm.synced_folder "/Users/mb250136/development/tdc-infrastructure", "/export/src/tdc-infrastructure", type: "virtualbox"
-      config.vm.synced_folder "/Users/mb250136/development/stacki-go-graphql", "/export/src/stacki-go-graphql", type: "virtualbox"
-      config.vm.synced_folder "/Users/mb250136/development/stacki-graphql", "/export/src/stacki-graphql", type: "virtualbox"
+      config.vm.synced_folder "test-suites", "/export/test-suites", type: "virtualbox"
 
       if USE_SRC == "1"
         config.vm.synced_folder "../", "/export/src/stacki", type: "virtualbox"
