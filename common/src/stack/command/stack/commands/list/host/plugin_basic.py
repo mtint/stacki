@@ -29,18 +29,18 @@ class Plugin(stack.commands.Plugin, stack.commands.Command):
 
 		rows = self.graphql(query_string = """
 			query hosts($expanded: Boolean!) {
-							allHosts {
-											id @include(if: $expanded)
-											name
-											rack
-											rank
-											appliance
-											os
-											box
-											environment
-											osaction
-											installaction
-							}
+				allHosts {
+					id @include(if: $expanded)
+					name
+					rack
+					rank
+					appliance
+					os
+					box
+					environment
+					osaction
+					installaction
+				}
 			}
 			""", variables = {"expanded": expanded})
 
