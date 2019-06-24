@@ -27,7 +27,7 @@ from stack.graph_ql.resolvers import (
 # TODO: Import all the Queries and Mutations dynamically
 # TODO: Filter out duplicate resolvers
 # class RootQuery(*Queries, graphene.ObjectType):
-class RootQuery(
+class Query(
 	HostResolver.Query,
 	AttributeResolver.Query,
 	BoxResolver.Query,
@@ -40,5 +40,10 @@ class RootQuery(
 ):
 		pass
 
+class Mutation(
+	HostResolver.Mutations
+):
+		pass
 
-schema = graphene.Schema(query=RootQuery)
+
+schema = graphene.Schema(query=Query, mutation=Mutation)

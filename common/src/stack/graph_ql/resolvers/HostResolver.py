@@ -9,6 +9,7 @@ from promise import Promise
 from promise.dataloader import DataLoader
 from stack.db import db
 from collections import namedtuple
+from stack.graph_ql.inputs import HostInput
 
 class Host(graphene.ObjectType):
 	id = graphene.Int()
@@ -46,3 +47,23 @@ class Query:
 		)
 
 		return [Host(**host) for host in db.fetchall()]
+
+class AddHost(graphene.Mutation):
+	class Arguments:
+		input = HostInput()
+	
+	ok = graphene.Boolean()
+
+	def mutate(root, info, input):
+		print(input)
+		db.execute(
+			"""
+			select asdfasdf
+			"""
+		)
+		print(db.fetchall())
+		ok = True
+		return AddHost(ok=ok)
+
+class Mutations(graphene.ObjectType):
+	add_host = AddHost.Field()
