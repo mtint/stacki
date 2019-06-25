@@ -55,12 +55,22 @@ class AddHost(graphene.Mutation):
 	ok = graphene.Boolean()
 
 	def mutate(root, info, input):
-		print(input)
-		db.execute(
-			"""
-			select asdfasdf
-			"""
-		)
+		db.execute("""
+			insert into nodes
+			(name, appliance, box, rack, rank)
+			values (
+				%s, %s, %s,
+			 	(select id from appliances where name=%s),
+			 	(select id from boxes      where name=%s)
+			) 
+			""", (
+				input['name'],
+				input['rack'],
+				input['rank'],
+				input['appliance'],
+				input['box'],
+				)
+			)
 		print(db.fetchall())
 		ok = True
 		return AddHost(ok=ok)
