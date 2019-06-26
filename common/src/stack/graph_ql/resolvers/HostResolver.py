@@ -97,15 +97,18 @@ class AddHost(graphene.Mutation):
 		except:
 			raise Exception(f'osaction "{input["installaction"]}" does not exist')
 
+		environment = None
 		if input['environment']:
-			db.execute(f'select * from environments where name="{input["name"]}"')
-			if not db.fetchall():
+			db.execute(f'select id from environments where name="{input["name"]}"')
+			try:
+				environment = db.fetchall().pop()['id']
+			except:
 				raise Exception(f'environment "{input["environment"]}" is not in the database')
 
 		db.execute('''
 			insert into nodes
-			(name, rack, rank, installaction, osaction, appliance, box)
-			values (%s, %s, %s, %s, %s, %s, %s) 
+			(name, rack, rank, installaction, osaction, appliance, box, environment)
+			values (%s, %s, %s, %s, %s, %s, %s, %s) 
 			''', (
 				input['name'],
 				input['rack'],
@@ -114,6 +117,7 @@ class AddHost(graphene.Mutation):
 				os_id,
 				appliance,
 				box_id,
+				environment,
 				)
 			)
 		print(db.fetchall())
