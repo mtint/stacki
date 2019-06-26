@@ -12,4 +12,6 @@ class HostInput(graphene.InputObjectType):
 	rack = graphene.String(required=True)
 	rank = graphene.String(required=True)
 	box = graphene.String(default_value='default')
-	environment = graphene.String()
+	osaction = graphene.String(default_value='default')
+	installaction = graphene.String(default_value='default')
+	environment = graphene.String(default_value=False)

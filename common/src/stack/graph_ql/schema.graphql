@@ -72,7 +72,9 @@ input HostInput {
   rack: String!
   rank: String!
   box: String = "default"
-  environment: String
+  osaction: String = "default"
+  installaction: String = "default"
+  environment: String = false
 }
 
 type Interface {
@@ -125,6 +127,7 @@ type Pallet {
 
 type Query {
   allAppliances: [Appliance]
+  getAppliance(name: String!): Appliance
   allPallets: [Pallet]
   allOses: [Os]
   allNetworks: [Network]

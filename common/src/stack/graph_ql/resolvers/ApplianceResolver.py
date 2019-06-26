@@ -14,6 +14,7 @@ class Appliance(graphene.ObjectType):
 
 class Query(graphene.ObjectType):
 	all_appliances = graphene.List(Appliance)
+	get_appliance = graphene.Field(Appliance, name=graphene.String(required=True))
 
 	def resolve_all_appliances(self, info):
 		db.execute("""
@@ -22,3 +23,12 @@ class Query(graphene.ObjectType):
 		""")
 
 		return [Appliance(**appliance) for appliance in db.fetchall()]
+
+	def resolve_get_appliance(self, info, name):
+		db.execute(f'select id, name, public from appliances where name="{name}"')
+		
+		result = db.fetchall()
+		if not result:
+			raise Exception(f'appliance "{name}" is not in the database')
+		
+		return Appliance(**result.pop())

@@ -55,20 +55,65 @@ class AddHost(graphene.Mutation):
 	ok = graphene.Boolean()
 
 	def mutate(root, info, input):
-		db.execute("""
+		# TODO: Reduce number of queries
+		db.execute(f'select id from appliances where name="{input["appliance"]}"')
+		try:
+			appliance = db.fetchall().pop()['id']
+		except:
+			raise Exception(f'appliance "{input["appliance"]}" is not in the database')
+
+		db.execute(f'select id, os from boxes where name="{input["box"]}"')
+		try:
+			box_id, os = db.fetchall().pop().values()
+		except:
+			raise Exception(f'box "{input["box"]}" is not in the database')
+
+		db.execute(f'select name from nodes where name="{input["name"]}"')
+		if db.fetchall():
+			raise Exception(f'host "{input["name"]}" already exists in the database')
+
+		db.execute('''
+				select bn.id as id from
+				bootactions ba, bootnames bn
+				where ba.bootname = bn.id
+				and ba.os = %s
+				and bn.name = "%s"
+				and bn.type = "install"
+				''' % (os, input['installaction']))
+		try:
+			install_id = db.fetchall().pop()['id']
+		except:
+			raise Exception(f'installaction "{input["installaction"]}" does not exist')
+
+		db.execute('''
+				select bn.id as id from
+				bootactions ba, bootnames bn
+				where ba.bootname = bn.id
+				and bn.name = "%s"
+				and bn.type = "os"
+				''' % input['installaction'])
+		try:
+			os_id = db.fetchall().pop()['id']
+		except:
+			raise Exception(f'osaction "{input["installaction"]}" does not exist')
+
+		if input['environment']:
+			db.execute(f'select * from environments where name="{input["name"]}"')
+			if not db.fetchall():
+				raise Exception(f'environment "{input["environment"]}" is not in the database')
+
+		db.execute('''
 			insert into nodes
-			(name, appliance, box, rack, rank)
-			values (
-				%s, %s, %s,
-			 	(select id from appliances where name=%s),
-			 	(select id from boxes      where name=%s)
-			) 
-			""", (
+			(name, rack, rank, installaction, osaction, appliance, box)
+			values (%s, %s, %s, %s, %s, %s, %s) 
+			''', (
 				input['name'],
 				input['rack'],
 				input['rank'],
-				input['appliance'],
-				input['box'],
+				install_id,
+				os_id,
+				appliance,
+				box_id,
 				)
 			)
 		print(db.fetchall())
