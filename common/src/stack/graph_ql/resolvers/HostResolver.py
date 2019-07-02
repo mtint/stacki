@@ -9,7 +9,7 @@ from promise import Promise
 from promise.dataloader import DataLoader
 from stack.db import db
 from collections import namedtuple
-from stack.graph_ql.inputs import HostInput
+from .InterfaceResolver import Interface
 
 class Host(graphene.ObjectType):
 	id = graphene.Int()
@@ -24,7 +24,19 @@ class Host(graphene.ObjectType):
 	installaction = graphene.String()
 	comment = graphene.String()
 	metadata = graphene.String()
-	# interfaces = graphene.List(lambda: Interface)
+	interfaces = graphene.List(lambda: Interface)
+
+	def resolve_interfaces(self, info):
+		db.execute(
+			f"""
+			select i.id as id, n.name as host, mac, ip, netmask, i.gateway,
+			i.name as name, device, s.name as subnet, module, vlanid, options, channel, main
+			from networks i, nodes n, subnets s
+			where i.node = {self.id} and i.subnet = s.id
+			"""
+		)
+
+		return [Interface(**interface) for interface in db.fetchall()]
 
 class Query:
 	all_hosts = graphene.List(Host)
@@ -50,7 +62,14 @@ class Query:
 
 class AddHost(graphene.Mutation):
 	class Arguments:
-		input = HostInput()
+		name = graphene.String(required=True)
+		appliance = graphene.String(required=True)
+		rack = graphene.String(required=True)
+		rank = graphene.String(required=True)
+		box = graphene.String(default_value='default')
+		osaction = graphene.String(default_value='default')
+		installaction = graphene.String(default_value='default')
+		environment = graphene.String(default_value=False)
 	
 	ok = graphene.Boolean()
 
@@ -120,7 +139,6 @@ class AddHost(graphene.Mutation):
 				environment,
 				)
 			)
-		print(db.fetchall())
 		ok = True
 		return AddHost(ok=ok)
 
