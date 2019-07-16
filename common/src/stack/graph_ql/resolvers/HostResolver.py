@@ -11,6 +11,39 @@ from stack.db import db
 from collections import namedtuple
 from .InterfaceResolver import Interface
 
+def resolve_interface_with_id(parent, info):
+	db.execute(
+			f"""
+			select i.id as id, n.name as host, mac, ip, netmask, i.gateway,
+			i.name as name, device, s.name as subnet, module, vlanid, options, channel, main
+			from networks i, nodes n, subnets s
+			where i.node = {parent.id} and i.subnet = s.id
+			"""
+		)
+
+	return [Interface(**interface) for interface in db.fetchall()]
+
+def resolve_appliance_by_name(parent, info, args):
+	db.execute(f'select id, name, public from appliances where name="{args["appliance"]}"')
+	try:
+		return db.fetchall().pop()
+	except:
+		raise Exception(f'appliance "{args["appliance"]}" is not in the database')
+
+def resolve_box_by_name(parent, info, args):
+	db.execute(f'select id, os from boxes where name="{args["box"]}"')
+	try:
+		return db.fetchall().pop()
+	except:
+		raise Exception(f'box "{args["box"]}" is not in the database')
+
+def resolve_host_by_name(parent, info, args):
+	db.execute(f'select id, name, appliance, box, environment, rack, rank, osaction, installaction, comment, metadata from nodes where name="{args["host"]}"')
+	try:
+		return db.fetchall().pop()
+	except:
+		raise Exception(f'box "{args["box"]}" is not in the database')
+
 class Host(graphene.ObjectType):
 	id = graphene.Int()
 	name = graphene.String()
@@ -24,19 +57,7 @@ class Host(graphene.ObjectType):
 	installaction = graphene.String()
 	comment = graphene.String()
 	metadata = graphene.String()
-	interfaces = graphene.List(lambda: Interface)
-
-	def resolve_interfaces(self, info):
-		db.execute(
-			f"""
-			select i.id as id, n.name as host, mac, ip, netmask, i.gateway,
-			i.name as name, device, s.name as subnet, module, vlanid, options, channel, main
-			from networks i, nodes n, subnets s
-			where i.node = {self.id} and i.subnet = s.id
-			"""
-		)
-
-		return [Interface(**interface) for interface in db.fetchall()]
+	interfaces = graphene.List(lambda: Interface, resolver=resolve_interface_with_id)
 
 class Query:
 	all_hosts = graphene.List(Host)
@@ -73,23 +94,15 @@ class AddHost(graphene.Mutation):
 	
 	ok = graphene.Boolean()
 
-	def mutate(root, info, input):
+	def mutate(root, info, **kwargs):
 		# TODO: Reduce number of queries
-		db.execute(f'select id from appliances where name="{input["appliance"]}"')
-		try:
-			appliance = db.fetchall().pop()['id']
-		except:
-			raise Exception(f'appliance "{input["appliance"]}" is not in the database')
+		appliance = resolve_appliance_by_name(root, info, kwargs)['id']
+		box = resolve_box_by_name(root, info, kwargs)
+		
 
-		db.execute(f'select id, os from boxes where name="{input["box"]}"')
-		try:
-			box_id, os = db.fetchall().pop().values()
-		except:
-			raise Exception(f'box "{input["box"]}" is not in the database')
-
-		db.execute(f'select name from nodes where name="{input["name"]}"')
+		db.execute(f'select name from nodes where name="{kwargs["name"]}"')
 		if db.fetchall():
-			raise Exception(f'host "{input["name"]}" already exists in the database')
+			raise Exception(f'host "{kwargs["name"]}" already exists in the database')
 
 		db.execute('''
 				select bn.id as id from
@@ -98,11 +111,11 @@ class AddHost(graphene.Mutation):
 				and ba.os = %s
 				and bn.name = "%s"
 				and bn.type = "install"
-				''' % (os, input['installaction']))
+				''' % (box['os'], kwargs['installaction']))
 		try:
 			install_id = db.fetchall().pop()['id']
 		except:
-			raise Exception(f'installaction "{input["installaction"]}" does not exist')
+			raise Exception(f'installaction "{kwargs["installaction"]}" does not exist')
 
 		db.execute('''
 				select bn.id as id from
@@ -110,32 +123,32 @@ class AddHost(graphene.Mutation):
 				where ba.bootname = bn.id
 				and bn.name = "%s"
 				and bn.type = "os"
-				''' % input['installaction'])
+				''' % kwargs['installaction'])
 		try:
 			os_id = db.fetchall().pop()['id']
 		except:
-			raise Exception(f'osaction "{input["installaction"]}" does not exist')
+			raise Exception(f'osaction "{kwargs["installaction"]}" does not exist')
 
 		environment = None
-		if input['environment']:
-			db.execute(f'select id from environments where name="{input["name"]}"')
+		if kwargs['environment']:
+			db.execute(f'select id, name from environments where name="{kwargs["name"]}"')
 			try:
 				environment = db.fetchall().pop()['id']
 			except:
-				raise Exception(f'environment "{input["environment"]}" is not in the database')
+				raise Exception(f'environment "{kwargs["environment"]}" is not in the database')
 
 		db.execute('''
 			insert into nodes
 			(name, rack, rank, installaction, osaction, appliance, box, environment)
 			values (%s, %s, %s, %s, %s, %s, %s, %s) 
 			''', (
-				input['name'],
-				input['rack'],
-				input['rank'],
+				kwargs['name'],
+				kwargs['rack'],
+				kwargs['rank'],
 				install_id,
-				os_id,
+				box['os'],
 				appliance,
-				box_id,
+				box['id'],
 				environment,
 				)
 			)

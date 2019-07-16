@@ -55,6 +55,7 @@ type Host {
   installaction: String
   comment: String
   metadata: String
+  interfaces: [Interface]
 }
 
 type HostAttribute implements Attribute {
@@ -64,17 +65,6 @@ type HostAttribute implements Attribute {
   value: String
   name: String
   shadow: String
-}
-
-input HostInput {
-  name: String!
-  appliance: String!
-  rack: String!
-  rank: String!
-  box: String = "default"
-  osaction: String = "default"
-  installaction: String = "default"
-  environment: String = false
 }
 
 type Interface {
@@ -95,7 +85,7 @@ type Interface {
 }
 
 type Mutation {
-  addHost(input: HostInput): AddHost
+  addHost(appliance: String!, box: String = "default", environment: String = false, installaction: String = "default", name: String!, osaction: String = "default", rack: String!, rank: String!): AddHost
 }
 
 type Network {

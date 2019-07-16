@@ -1,1 +1,4 @@
 flask-graphql
+graphene
+ariadne
+uvicorn
