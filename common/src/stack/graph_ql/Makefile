@@ -16,6 +16,7 @@ bootstrap: install-rpm
 build:
 
 install::
+	mkdir -p $(ROOT)/usr/lib/systemd/system
 	mkdir -p $(ROOT)/$(PY.STACK)/stack/graph_ql/resolvers
 	mkdir -p $(ROOT)/$(PY.STACK)/stack/graph_ql/schema
 
