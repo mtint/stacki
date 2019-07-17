@@ -128,3 +128,7 @@ type Query {
   applianceAttributes: [ApplianceAttribute]
   allHosts: [Host]
 }
+
+type Subscription {
+	allHosts: [Host]
+}

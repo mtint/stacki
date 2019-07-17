@@ -1674,14 +1674,21 @@ class Command:
 	def graphql(self, query_string, variables = None):
 		"""
 		"""
+		# TODO:  Clean this up
+		import requests
+		headers = {'Content-Type': 'application/json'}
+		# Requires the http server to be running
+		url = 'http://localhost:8081/'
+
 		if not variables:
 			variables = {}
 
-		result = schema.execute(query_string, variables=variables)
-		if result.errors:
-			raise Exception(result.errors[0].message)
+		response = requests.post(url, headers=headers,json={"query":query_string,"variables":variables}).json()
 
-		return result.data
+		if "errors" in response:
+			raise Exception(response['errors'][0]['message'])
+
+		return response['data']
 
 	def fillParams(self, names, params=None):
 		"""
