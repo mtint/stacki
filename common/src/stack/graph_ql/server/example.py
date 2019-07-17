@@ -44,12 +44,22 @@ type Interface {
 	main: Int
 }
 
+type Appliance {
+  id: Int
+  name: String
+  public: String
+}
+
 type Mutation {
 	addHost(appliance: String!, box: String = "default", environment: String = false, installaction: String = "default", name: String!, osaction: String = "default", rack: String!, rank: String!): AddHost
 }
 
 type Query {
 	allHosts: [Host]
+}
+
+extend type Query {
+	getAppliance(name: String!): Appliance
 }
 
 type Subscription {

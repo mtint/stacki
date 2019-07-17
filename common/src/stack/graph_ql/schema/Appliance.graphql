@@ -1,0 +1,10 @@
+type Appliance {
+  id: Int
+  name: String
+  public: String
+}
+
+extend type Query {
+  getAppliance(name: String!): Appliance
+	allAppliances: [Appliance]
+}

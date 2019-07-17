@@ -1,0 +1,8 @@
+type Os {
+  id: Int
+  name: String
+}
+
+extend type Query {
+  allOses: [Os]
+}

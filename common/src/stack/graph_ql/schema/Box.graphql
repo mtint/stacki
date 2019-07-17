@@ -1,0 +1,9 @@
+type Box {
+  id: Int
+  name: String
+  os: String
+}
+
+extend type Query {
+	allBoxes: [Box]
+}
