@@ -43,11 +43,6 @@ from stack.exception import (
 from stack.bool import str2bool, bool2str
 from stack.util import flatten
 import stack.util
-try:
-	from stack.graph_ql import schema
-except ImportError:
-	pass
-
 
 _logPrefix = ''
 _debug     = False

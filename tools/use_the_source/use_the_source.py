@@ -2,7 +2,7 @@
 import sys
 from pathlib import Path
 
-dest_base = Path("/opt/stack/lib/python3.7/site-packages")
+dest_base = Path("/opt/stack/lib/python3.6/site-packages")
 
 grafts_to_site_packages = (
 	("command/stack/argument_processors", "stack/argument_processors"),
@@ -19,6 +19,7 @@ grafts_to_site_packages = (
 	("ws/command", "stack/commands"),
 	("ws/pylib", "stack"),
 	("graph_ql", "stack/graph_ql"),
+	("db", "stack/db"),
 	("ws-client/pylib", "")
 )
 

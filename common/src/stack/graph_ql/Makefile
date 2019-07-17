@@ -7,7 +7,7 @@
 
 PKGROOT		= /opt/stack
 ROLLROOT	= ../../../..
-DEPENDS.DIRS	= resolvers server
+DEPENDS.DIRS	= resolvers schema pylib
 
 include $(STACKBUILD)/etc/CCRules.mk
 
@@ -17,10 +17,12 @@ build:
 
 install::
 	mkdir -p $(ROOT)/$(PY.STACK)/stack/graph_ql/resolvers
-	mkdir -p $(ROOT)/$(PY.STACK)/stack/graph_ql/server
+	mkdir -p $(ROOT)/$(PY.STACK)/stack/graph_ql/schema
 
 	$(INSTALL) -m 0644 $(wildcard resolvers/*.py)	$(ROOT)/$(PY.STACK)/stack/graph_ql/resolvers/
-	$(INSTALL) -m 0644 $(wildcard server/*.py)	$(ROOT)/$(PY.STACK)/stack/graph_ql/server/
+	$(INSTALL) -m 0644 $(wildcard schema/*.graphql)	$(ROOT)/$(PY.STACK)/stack/graph_ql/schema/
 	$(INSTALL) -m 0644 $(wildcard pylib/graph_ql/*.py)	$(ROOT)/$(PY.STACK)/stack/graph_ql/
+
+	$(INSTALL) -m 0644 graphql-server.service $(ROOT)/usr/lib/systemd/system
 
 clean::

@@ -79,5 +79,5 @@ def host_resolver(obj, info):
 schema = make_executable_schema(type_defs, [query, host, subscription])
 
 # Create an ASGI app using the schema, running in debug mode
-app = GraphQL(schema, debug=True)
+app = GraphQL(schema)
 

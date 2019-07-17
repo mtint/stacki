@@ -23,9 +23,18 @@ extend type Query {
 }
 
 extend type Mutation {
-	addHost(appliance: String!, box: String = "default", environment: String = false, installaction: String = "default", name: String!, osaction: String = "default", rack: String!, rank: String!): AddHost
+  addHost(
+    appliance: String!
+    box: String = "default"
+    environment: String = false
+    installaction: String = "default"
+    name: String!
+    osaction: String = "default"
+    rack: String!
+    rank: String!
+  ): AddHost
 }
 
 extend type Subscription {
-	allHosts: [Host]
+  allHosts: [Host]
 }
