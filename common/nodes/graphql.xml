@@ -1,10 +1,14 @@
-<stack:stack><stack:package>
+<stack:stack>
+
+<stack:package>
 stack-db
 stack-graph_ql
-</stack:package></stack:stack>
+</stack:package>
 
 <stack:script stack:stage="install-post">
 <!-- TODO: Remove this once the pip install is figured for these packages -->
 /opt/stack/bin/python3 -m ensurepip
 /opt/stack/bin/python3 -m pip install uvicorn
 </stack:script>
+
+</stack:stack>
