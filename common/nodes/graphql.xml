@@ -10,6 +10,8 @@ stack-graph_ql
 /opt/stack/bin/python3 -m ensurepip
 /opt/stack/bin/python3 -m pip install uvicorn
 systemctl enable graphql-server
+
+wait_for_mysql_up
 systemctl start graphql-server
 </stack:script>
 
