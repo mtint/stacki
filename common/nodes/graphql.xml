@@ -9,6 +9,8 @@ stack-graph_ql
 <!-- TODO: Remove this once the pip install is figured for these packages -->
 /opt/stack/bin/python3 -m ensurepip
 /opt/stack/bin/python3 -m pip install uvicorn
+systemctl enable graphql-server
+systemctl start graphql-server
 </stack:script>
 
 </stack:stack>
