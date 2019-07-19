@@ -34,6 +34,5 @@
 	"requests":		{ "fe": true },
 	"testinfra":		{ "fe": true, "bootstrap": true, "version": "1.16.0" },
 	"yoyo-migrations":	{ "fe": true },
-	"ariadne":	{ "fe": true },
-	"uvicorn":	{ "fe": true }
+	"ariadne":	{ "fe": true }
 }
