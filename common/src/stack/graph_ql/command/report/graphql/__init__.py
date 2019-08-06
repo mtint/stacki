@@ -10,16 +10,13 @@ import stack.commands
 from stack.db import db
 from pprint import pprint
 
-class command(stack.commands.HostArgumentProcessor,
-	stack.commands.report.command,
-	stack.commands.DatabaseConnection):
+class command(stack.commands.report.command):
 	pass
 
 class Command(command):
 	"""
 	Output the GraphQL schema definition (SDL) generated with the database schema.
 	"""
-
 
 	def get_table_names(self):
 		"""Returns a list of the table names in the database"""
@@ -73,7 +70,7 @@ class Command(command):
 		check_string = string.lower()
 
 		for scalar in scalars:
-			if check_string.startswith(scalar):
+			if scalar in check_string:
 				ext = '!' if required else ''
 				return f"{scalars[scalar]}{ext}"
 
@@ -116,9 +113,6 @@ class Command(command):
 				types_list.append("type %s {\n%s\n}\n" % (type_name, self.generate_type_field_strings(type_values)))
 
 		return types_list
-
-# x = "\n".join(generate_sdl())
-# print(x)
 
 	def run(self, params, args):
 
