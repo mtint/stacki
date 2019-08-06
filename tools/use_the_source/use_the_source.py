@@ -15,6 +15,7 @@ grafts_to_site_packages = (
 	("pylib/stack", "stack"),
 	("report-system/command", "stack/commands"),
 	("switch/command", "stack/commands"),
+	("graph_ql/command", "stack/commands"),
 	("switch/pylib", "stack"),
 	("ws/command", "stack/commands"),
 	("ws/pylib", "stack"),

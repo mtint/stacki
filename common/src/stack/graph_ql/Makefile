@@ -26,4 +26,14 @@ install::
 
 	$(INSTALL) -m 0644 graphql-server.service $(ROOT)/usr/lib/systemd/system
 
+	# Install command
+	(					\
+		cd command;			\
+		find . -type f -name \*.py |	\
+		cpio -pudv $(ROOT)/$(PY.STACK)/stack/commands;	\
+	)
+	
+	find $(ROOT)/$(PY.STACK)/stack/commands -name "*.py" | gawk	\
+		'{ print "\nRollName = \"$(ROLL)\"" >> $$1; }'
+
 clean::
