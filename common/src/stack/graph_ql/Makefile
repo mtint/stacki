@@ -11,8 +11,6 @@ DEPENDS.DIRS	= resolvers schema pylib
 
 include $(STACKBUILD)/etc/CCRules.mk
 
-bootstrap: install-rpm
-
 build:
 
 install::
