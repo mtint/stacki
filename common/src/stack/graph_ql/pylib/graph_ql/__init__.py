@@ -9,7 +9,7 @@ from ariadne.asgi import GraphQL
 from stack.db import db
 import asyncio
 
-type_defs = load_schema_from_path("/opt/stack/lib/python3.7/site-packages/stack/graph_ql/schema/")
+type_defs = load_schema_from_path("/opt/stack/lib/python3.6/site-packages/stack/graph_ql/schema/")
 
 query = QueryType()
 
