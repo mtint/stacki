@@ -9,7 +9,7 @@ from ariadne.asgi import GraphQL
 from stack.db import db
 import asyncio
 
-type_defs = load_schema_from_path("/opt/stack/lib/python3.6/site-packages/stack/graph_ql/schema/")
+type_defs = load_schema_from_path("/opt/stack/lib/python3.7/site-packages/stack/graph_ql/schema/")
 
 query = QueryType()
 
@@ -75,6 +75,34 @@ async def host_generator(obj, info):
 @subscription.field("allHosts")
 def host_resolver(obj, info):
 	return obj
+
+# TODO: Move out of init
+# Dynamic queries
+def camel_case_it(string, delimeter = "_"):
+		"""Return string in camelCase form"""
+		string = "".join([word.capitalize() for word in string.split(delimeter)])
+		return string[0].lower() + string[1:]
+
+def get_table_names():
+		"""Returns a list of the table names in the database"""
+		db.execute("SHOW tables")
+
+		table_names = []
+		for table in db.fetchall():
+			table_names.append(list(table.values())[0])
+
+		return table_names
+
+def select_query(obj, info):
+	db.execute(f'DESCRIBE {info.field_name}')
+	table_info = db.fetchall()
+	query_string = ", ".join([field["Field"].lower() for field in table_info])
+	db.execute(f'select {query_string} from {info.field_name}')
+
+	return db.fetchall()
+
+[query.field(camel_case_it(field))(lambda obj, info: select_query(obj, info)) for field in get_table_names()]
+# End dynamic queries
 
 schema = make_executable_schema(type_defs, [query, host, subscription])
 

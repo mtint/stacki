@@ -88,6 +88,13 @@ class Command(command):
 		fields = map(lambda field: "  {}: {}".format(*field), field_types)
 		return "\n".join(fields)
 
+	def generate_query_type_field(self, table_name):
+		return (self.camel_case_it(table_name), self.pascal_case_it(table_name))
+
+	def generate_query_type_field_strings(self, query_types):
+		"""Returns query field types "nodes: [Nodes]" """
+		return "  {}: [{}]".format(*query_types)
+
 	def camel_case_it(self, string, delimeter = "_"):
 		"""Return string in camelCase form"""
 		string = "".join([word.capitalize() for word in string.split(delimeter)])
@@ -97,7 +104,7 @@ class Command(command):
 		"""Return string in PascalCase form"""
 		return "".join([word.capitalize() for word in string.split(delimeter)])
 
-	def generate_sdl(self):
+	def generate_types(self):
 
 		gql_types = []
 		for table_name in self.get_table_names():
@@ -114,10 +121,24 @@ class Command(command):
 
 		return types_list
 
+	def generate_queries(self):
+
+		gql_types = []
+		for table_name in self.get_table_names():
+			gql_types.append(self.generate_query_type_field(table_name))
+
+		query_list = ["extend type Query {",]
+		for gql_type in gql_types:
+			query_list.append(self.generate_query_type_field_strings(gql_type))
+
+		query_list.append("}")
+		return query_list
+
 	def run(self, params, args):
 
 		self.beginOutput()
 
-		self.addOutput(self, "\n".join(self.generate_sdl()))
+		self.addOutput(self, "\n".join(self.generate_types()))
+		self.addOutput(self, "\n".join(self.generate_queries()))
 
 		self.endOutput(padChar='', trimOwner=True)
