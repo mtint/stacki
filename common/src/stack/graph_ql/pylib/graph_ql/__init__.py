@@ -83,6 +83,12 @@ def camel_case_it(string, delimeter = "_"):
 		string = "".join([word.capitalize() for word in string.split(delimeter)])
 		return string[0].lower() + string[1:]
 
+def find_field_name(field_name):
+		"""Find the non camelCase version of a table name"""
+		for table in get_table_names():
+			if field_name == camel_case_it(table):
+				return table
+
 def get_table_names():
 		"""Returns a list of the table names in the database"""
 		db.execute("SHOW tables")
@@ -94,10 +100,17 @@ def get_table_names():
 		return table_names
 
 def select_query(obj, info):
-	db.execute(f'DESCRIBE {info.field_name}')
-	table_info = db.fetchall()
+	table_name = info.field_name
+	try:
+		db.execute(f'DESCRIBE {table_name}')
+		table_info = db.fetchall()
+	except:
+		table_name = find_field_name(info.field_name)
+		db.execute(f'DESCRIBE {table_name}')
+		table_info = db.fetchall()
+
 	query_string = ", ".join([field["Field"].lower() for field in table_info])
-	db.execute(f'select {query_string} from {info.field_name}')
+	db.execute(f'select {query_string} from {table_name}')
 
 	return db.fetchall()
 
