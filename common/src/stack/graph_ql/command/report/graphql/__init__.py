@@ -81,6 +81,14 @@ class Command(command):
 			field_type = self.get_scalar_value(field['Type'], field['Null'] == 'NO')
 			fields.append((field_name, field_type))
 
+		for field in reference:
+			if not field['referenced_column_name']:
+				continue
+			field_name = self.camel_case_it(field['column_name'])
+			field_type = self.pascal_case_it(field['referenced_table_name'])
+			# TODO: Fix this
+			fields.append((f"{field_name}WithId", f"[{field_type}]"))
+
 		return fields
 
 	def generate_type_field_strings(self, field_types):
@@ -109,7 +117,7 @@ class Command(command):
 		gql_types = []
 		for table_name in self.get_table_names():
 			description = self.get_table_description(table_name)
-			reference = self.get_table_description(table_name)
+			reference = self.get_table_references(table_name)
 			gql_types.append({
 				self.pascal_case_it(table_name): self.generate_type_fields(table_name, description, reference)
 			})

@@ -83,6 +83,9 @@ type FirewallRules {
   outSubnetId: Int
   flags: String
   comment: String
+  scopeMapIdWithId: [ScopeMap]
+  inSubnetIdWithId: [Subnets]
+  outSubnetIdWithId: [Subnets]
 }
 
 type Firmware {
@@ -93,6 +96,7 @@ type Firmware {
   hashAlg: String!
   hash: String!
   file: String!
+  modelIdWithId: [FirmwareModel]
 }
 
 type FirmwareImp {
@@ -104,12 +108,15 @@ type FirmwareMake {
   id: Int!
   name: String!
   versionRegexId: Int
+  versionRegexIdWithId: [FirmwareVersionRegex]
 }
 
 type FirmwareMapping {
   id: Int!
   nodeId: Int!
   firmwareId: Int!
+  nodeIdWithId: [Nodes]
+  firmwareIdWithId: [Firmware]
 }
 
 type FirmwareModel {
@@ -118,6 +125,9 @@ type FirmwareModel {
   makeId: Int!
   impId: Int!
   versionRegexId: Int
+  makeIdWithId: [FirmwareMake]
+  impIdWithId: [FirmwareImp]
+  versionRegexIdWithId: [FirmwareVersionRegex]
 }
 
 type FirmwareVersionRegex {
@@ -138,6 +148,9 @@ type IbMemberships {
   interface: Int!
   partName: Int!
   memberType: String!
+  switchWithId: [Nodes]
+  interfaceWithId: [Networks]
+  partNameWithId: [IbPartitions]
 }
 
 type IbPartitions {
@@ -146,6 +159,7 @@ type IbPartitions {
   partKey: Int!
   partName: String!
   options: String!
+  switchWithId: [Nodes]
 }
 
 type Memberships {
@@ -227,6 +241,8 @@ type Routes {
   gateway: String
   subnetId: Int
   interface: String
+  scopeMapIdWithId: [ScopeMap]
+  subnetIdWithId: [Subnets]
 }
 
 type ScopeMap {
@@ -236,6 +252,10 @@ type ScopeMap {
   osId: Int
   environmentId: Int
   nodeId: Int
+  applianceIdWithId: [Appliances]
+  osIdWithId: [Oses]
+  environmentIdWithId: [Environments]
+  nodeIdWithId: [Nodes]
 }
 
 type Stacks {
@@ -252,6 +272,7 @@ type StorageController {
   raidlevel: String!
   arrayid: Int!
   options: String!
+  scopeMapIdWithId: [ScopeMap]
 }
 
 type StoragePartition {
@@ -263,6 +284,7 @@ type StoragePartition {
   fstype: String
   partid: Int!
   options: String!
+  scopeMapIdWithId: [ScopeMap]
 }
 
 type Subnets {
