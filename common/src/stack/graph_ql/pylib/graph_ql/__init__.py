@@ -147,7 +147,6 @@ def select_query(obj, info):
 def nested_select_query(obj, info):
 	referenced_table_name = find_table_name(info.return_type.of_type.name, pascal_case_it)
 	parent_table_name = find_table_name(info.parent_type.name, pascal_case_it)
-	print(referenced_table_name, parent_table_name)
 	try:
 		db.execute(f'DESCRIBE {referenced_table_name}')
 		table_info = db.fetchall()
