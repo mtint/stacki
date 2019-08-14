@@ -54,15 +54,15 @@ type Boxes {
   os: Int!
 }
 
-type CartStacks {
-  box: Int!
-  cart: Int!
-}
-
 type Carts {
   id: Int!
   name: String!
   url: String
+}
+
+type CartStacks {
+  box: Int!
+  cart: Int!
 }
 
 type Environments {
@@ -72,31 +72,27 @@ type Environments {
 
 type FirewallRules {
   id: Int!
-  scopeMapId: Int!
+  scopeMapId: ScopeMap
   name: String!
   tableType: String!
   chain: String!
   action: String!
   service: String!
   protocol: String!
-  inSubnetId: Int
-  outSubnetId: Int
+  inSubnetId: Subnets
+  outSubnetId: Subnets
   flags: String
   comment: String
-  scopeMapIdWithId: [ScopeMap]
-  inSubnetIdWithId: [Subnets]
-  outSubnetIdWithId: [Subnets]
 }
 
 type Firmware {
   id: Int!
-  modelId: Int!
+  modelId: FirmwareModel
   source: String!
   version: String!
   hashAlg: String!
   hash: String!
   file: String!
-  modelIdWithId: [FirmwareModel]
 }
 
 type FirmwareImp {
@@ -107,27 +103,21 @@ type FirmwareImp {
 type FirmwareMake {
   id: Int!
   name: String!
-  versionRegexId: Int
-  versionRegexIdWithId: [FirmwareVersionRegex]
+  versionRegexId: FirmwareVersionRegex
 }
 
 type FirmwareMapping {
   id: Int!
-  nodeId: Int!
-  firmwareId: Int!
-  nodeIdWithId: [Nodes]
-  firmwareIdWithId: [Firmware]
+  nodeId: Nodes
+  firmwareId: Firmware
 }
 
 type FirmwareModel {
   id: Int!
   name: String!
-  makeId: Int!
-  impId: Int!
-  versionRegexId: Int
-  makeIdWithId: [FirmwareMake]
-  impIdWithId: [FirmwareImp]
-  versionRegexIdWithId: [FirmwareVersionRegex]
+  makeId: FirmwareMake
+  impId: FirmwareImp
+  versionRegexId: FirmwareVersionRegex
 }
 
 type FirmwareVersionRegex {
@@ -144,22 +134,18 @@ type Groups {
 
 type IbMemberships {
   id: Int!
-  switch: Int!
-  interface: Int!
-  partName: Int!
+  switch: Nodes
+  interface: Networks
+  partName: IbPartitions
   memberType: String!
-  switchWithId: [Nodes]
-  interfaceWithId: [Networks]
-  partNameWithId: [IbPartitions]
 }
 
 type IbPartitions {
   id: Int!
-  switch: Int!
+  switch: Nodes
   partKey: Int!
   partName: String!
   options: String!
-  switchWithId: [Nodes]
 }
 
 type Memberships {
@@ -187,7 +173,7 @@ type Networks {
 type Nodes {
   id: Int!
   name: String
-  appliance: Int
+  appliance: Appliances
   box: Int
   environment: Int
   rack: String
@@ -235,27 +221,21 @@ type Rolls {
 
 type Routes {
   id: Int!
-  scopeMapId: Int!
+  scopeMapId: ScopeMap
   address: String!
   netmask: String!
   gateway: String
-  subnetId: Int
+  subnetId: Subnets
   interface: String
-  scopeMapIdWithId: [ScopeMap]
-  subnetIdWithId: [Subnets]
 }
 
 type ScopeMap {
   id: Int!
   scope: String!
-  applianceId: Int
-  osId: Int
-  environmentId: Int
-  nodeId: Int
-  applianceIdWithId: [Appliances]
-  osIdWithId: [Oses]
-  environmentIdWithId: [Environments]
-  nodeIdWithId: [Nodes]
+  applianceId: Appliances
+  osId: Oses
+  environmentId: Environments
+  nodeId: Nodes
 }
 
 type Stacks {
@@ -265,26 +245,24 @@ type Stacks {
 
 type StorageController {
   id: Int!
-  scopeMapId: Int!
+  scopeMapId: ScopeMap
   enclosure: Int!
   adapter: Int!
   slot: Int!
   raidlevel: String!
   arrayid: Int!
   options: String!
-  scopeMapIdWithId: [ScopeMap]
 }
 
 type StoragePartition {
   id: Int!
-  scopeMapId: Int!
+  scopeMapId: ScopeMap
   device: String!
   mountpoint: String
   size: Int!
   fstype: String
   partid: Int!
   options: String!
-  scopeMapIdWithId: [ScopeMap]
 }
 
 type Subnets {
@@ -322,8 +300,8 @@ extend type Query {
   bootactions: [Bootactions]
   bootnames: [Bootnames]
   boxes: [Boxes]
-  cartStacks: [CartStacks]
   carts: [Carts]
+  cartStacks: [CartStacks]
   environments: [Environments]
   firewallRules: [FirewallRules]
   firmware: [Firmware]

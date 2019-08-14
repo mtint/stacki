@@ -7,7 +7,7 @@
 
 import re
 import stack.commands
-from stack.db import db
+from stack.db import database as db, BaseModel
 from pprint import pprint
 
 class command(stack.commands.report.command):
@@ -19,45 +19,26 @@ class Command(command):
 	"""
 
 	def get_table_names(self):
-		"""Returns a list of the table names in the database"""
-		db.execute("SHOW tables")
+		"""
+		Returns a list of the table names in the database
+		"""
 
-		table_names = []
-		for table in db.fetchall():
-			table_names.append(list(table.values())[0])
-
-		return table_names
+		return self.model_dict.keys()
 
 	def get_table_description(self, table_name):
 		"""
 		return list of descriptions
-		{
-			'Default': None,
-			'Extra': 'auto_increment',
-			'Field': 'id',
-			'Key': 'PRI',
-			'Null': 'NO',
-			'Type': 'int(11)'
-		}
 		"""
-		db.execute(f'DESCRIBE {table_name}')
 
-		return db.fetchall()
+		return self.model_dict[table_name]._meta.columns
 
 
 	def get_table_references(self, table_name):
 		"""
 		return list of references
-		{
-			'column_name': 'node_id',
-			'referenced_column_name': 'ID',
-			'referenced_table_name': 'nodes',
-			'table_name': 'scope_map'
-		}
 		"""
-		db.execute(f'SELECT table_name, referenced_table_name, column_name, referenced_column_name from information_schema.KEY_COLUMN_USAGE where table_name="{table_name}"')
 
-		return db.fetchall()
+		return db.get_foreign_keys(table_name)
 
 	def get_scalar_value(self, string, required = False):
 		scalars = {
@@ -75,25 +56,26 @@ class Command(command):
 				return f"{scalars[scalar]}{ext}"
 
 	def generate_type_fields(self, table_name, description, reference):
-		fields = []
+		fields = {}
 		for field in description:
-			field_name = self.camel_case_it(field['Field'])
-			field_type = self.get_scalar_value(field['Type'], field['Null'] == 'NO')
-			fields.append((field_name, field_type))
+			field_name = self.camel_case_it(field.name)
+			field_type = self.get_scalar_value(field.data_type, not field.null)
+			fields[field_name] = field_type
 
 		for field in reference:
-			if not field['referenced_column_name']:
+			if not field.dest_table:
 				continue
-			field_name = self.camel_case_it(field['column_name'])
-			field_type = self.pascal_case_it(field['referenced_table_name'])
-			# TODO: Fix this
-			fields.append((f"{field_name}WithId", f"[{field_type}]"))
+			field_name = self.camel_case_it(field.column)
+			field_type = self.pascal_case_it(field.dest_table)
+			fields[field_name] = field_type
 
 		return fields
 
 	def generate_type_field_strings(self, field_types):
 		"""Returns field types "Id: String" """
-		fields = map(lambda field: "  {}: {}".format(*field), field_types)
+		fields = []
+		for k, v in field_types.items():
+			fields.append("  {}: {}".format(k, v))
 		return "\n".join(fields)
 
 	def generate_query_type_field(self, table_name):
@@ -129,6 +111,13 @@ class Command(command):
 
 		return types_list
 
+	def generate_model_dict(self):
+		model_dict = {}
+		for model in BaseModel.__subclasses__():
+			model_dict[model._meta.table_name] = model
+
+		return model_dict
+
 	def generate_queries(self):
 
 		gql_types = []
@@ -143,6 +132,8 @@ class Command(command):
 		return query_list
 
 	def run(self, params, args):
+
+		self.model_dict = self.generate_model_dict()
 
 		self.beginOutput()
 
