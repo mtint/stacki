@@ -7,15 +7,7 @@
 import os
 from peewee import *
 
-database = MySQLDatabase(
-    "cluster",
-    **{
-        "charset": "utf8",
-        "use_unicode": True,
-        "user": "apache",
-        "password": "5byCkU7eW8joidoa",
-    }
-)
+database = PostgresqlDatabase('postgres', host='localhost', user='postgres')
 
 
 class UnknownField(object):
