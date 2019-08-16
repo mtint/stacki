@@ -1,0 +1,185 @@
+- args:
+    table:
+      name: access
+      schema: public
+  type: untrack_table
+- args:
+    table:
+      name: aliases
+      schema: public
+  type: untrack_table
+- args:
+    table:
+      name: appliances
+      schema: public
+  type: untrack_table
+- args:
+    table:
+      name: attributes
+      schema: public
+  type: untrack_table
+- args:
+    table:
+      name: attributes_doc
+      schema: public
+  type: untrack_table
+- args:
+    table:
+      name: boot
+      schema: public
+  type: untrack_table
+- args:
+    table:
+      name: bootactions
+      schema: public
+  type: untrack_table
+- args:
+    table:
+      name: bootnames
+      schema: public
+  type: untrack_table
+- args:
+    table:
+      name: boxes
+      schema: public
+  type: untrack_table
+- args:
+    table:
+      name: cart_stacks
+      schema: public
+  type: untrack_table
+- args:
+    table:
+      name: carts
+      schema: public
+  type: untrack_table
+- args:
+    table:
+      name: environments
+      schema: public
+  type: untrack_table
+- args:
+    table:
+      name: firewall_rules
+      schema: public
+  type: untrack_table
+- args:
+    table:
+      name: firmware
+      schema: public
+  type: untrack_table
+- args:
+    table:
+      name: firmware_imp
+      schema: public
+  type: untrack_table
+- args:
+    table:
+      name: firmware_make
+      schema: public
+  type: untrack_table
+- args:
+    table:
+      name: firmware_mapping
+      schema: public
+  type: untrack_table
+- args:
+    table:
+      name: firmware_model
+      schema: public
+  type: untrack_table
+- args:
+    table:
+      name: firmware_version_regex
+      schema: public
+  type: untrack_table
+- args:
+    table:
+      name: groups
+      schema: public
+  type: untrack_table
+- args:
+    table:
+      name: ib_memberships
+      schema: public
+  type: untrack_table
+- args:
+    table:
+      name: ib_partitions
+      schema: public
+  type: untrack_table
+- args:
+    table:
+      name: memberships
+      schema: public
+  type: untrack_table
+- args:
+    table:
+      name: networks
+      schema: public
+  type: untrack_table
+- args:
+    table:
+      name: nodes
+      schema: public
+  type: untrack_table
+- args:
+    table:
+      name: oses
+      schema: public
+  type: untrack_table
+- args:
+    table:
+      name: partitions
+      schema: public
+  type: untrack_table
+- args:
+    table:
+      name: public_keys
+      schema: public
+  type: untrack_table
+- args:
+    table:
+      name: rolls
+      schema: public
+  type: untrack_table
+- args:
+    table:
+      name: routes
+      schema: public
+  type: untrack_table
+- args:
+    table:
+      name: scope_map
+      schema: public
+  type: untrack_table
+- args:
+    table:
+      name: stacks
+      schema: public
+  type: untrack_table
+- args:
+    table:
+      name: storage_controller
+      schema: public
+  type: untrack_table
+- args:
+    table:
+      name: storage_partition
+      schema: public
+  type: untrack_table
+- args:
+    table:
+      name: subnets
+      schema: public
+  type: untrack_table
+- args:
+    table:
+      name: switchports
+      schema: public
+  type: untrack_table
+- args:
+    table:
+      name: tags
+      schema: public
+  type: untrack_table

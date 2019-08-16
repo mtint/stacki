@@ -1,0 +1,288 @@
+- args:
+    relationship: nodes
+    table:
+      name: appliances
+      schema: public
+  type: drop_relationship
+- args:
+    relationship: scope_maps
+    table:
+      name: appliances
+      schema: public
+  type: drop_relationship
+- args:
+    relationship: scope_maps
+    table:
+      name: environments
+      schema: public
+  type: drop_relationship
+- args:
+    relationship: subnet
+    table:
+      name: firewall_rules
+      schema: public
+  type: drop_relationship
+- args:
+    relationship: subnetByOutSubnetId
+    table:
+      name: firewall_rules
+      schema: public
+  type: drop_relationship
+- args:
+    relationship: scope_map
+    table:
+      name: firewall_rules
+      schema: public
+  type: drop_relationship
+- args:
+    relationship: firmware_model
+    table:
+      name: firmware
+      schema: public
+  type: drop_relationship
+- args:
+    relationship: firmware_mappings
+    table:
+      name: firmware
+      schema: public
+  type: drop_relationship
+- args:
+    relationship: firmware_models
+    table:
+      name: firmware_imp
+      schema: public
+  type: drop_relationship
+- args:
+    relationship: firmware_version_regex
+    table:
+      name: firmware_make
+      schema: public
+  type: drop_relationship
+- args:
+    relationship: firmware_models
+    table:
+      name: firmware_make
+      schema: public
+  type: drop_relationship
+- args:
+    relationship: firmware
+    table:
+      name: firmware_mapping
+      schema: public
+  type: drop_relationship
+- args:
+    relationship: node
+    table:
+      name: firmware_mapping
+      schema: public
+  type: drop_relationship
+- args:
+    relationship: firmware_imp
+    table:
+      name: firmware_model
+      schema: public
+  type: drop_relationship
+- args:
+    relationship: firmware_make
+    table:
+      name: firmware_model
+      schema: public
+  type: drop_relationship
+- args:
+    relationship: firmware_version_regex
+    table:
+      name: firmware_model
+      schema: public
+  type: drop_relationship
+- args:
+    relationship: firmwares
+    table:
+      name: firmware_model
+      schema: public
+  type: drop_relationship
+- args:
+    relationship: firmware_makes
+    table:
+      name: firmware_version_regex
+      schema: public
+  type: drop_relationship
+- args:
+    relationship: firmware_models
+    table:
+      name: firmware_version_regex
+      schema: public
+  type: drop_relationship
+- args:
+    relationship: network
+    table:
+      name: ib_memberships
+      schema: public
+  type: drop_relationship
+- args:
+    relationship: ib_partition
+    table:
+      name: ib_memberships
+      schema: public
+  type: drop_relationship
+- args:
+    relationship: node
+    table:
+      name: ib_memberships
+      schema: public
+  type: drop_relationship
+- args:
+    relationship: node
+    table:
+      name: ib_partitions
+      schema: public
+  type: drop_relationship
+- args:
+    relationship: ib_memberships
+    table:
+      name: ib_partitions
+      schema: public
+  type: drop_relationship
+- args:
+    relationship: subnet
+    table:
+      name: networks
+      schema: public
+  type: drop_relationship
+- args:
+    relationship: ib_memberships
+    table:
+      name: networks
+      schema: public
+  type: drop_relationship
+- args:
+    relationship: appliance
+    table:
+      name: nodes
+      schema: public
+  type: drop_relationship
+- args:
+    relationship: scope_maps
+    table:
+      name: nodes
+      schema: public
+  type: drop_relationship
+- args:
+    relationship: firmware_mappings
+    table:
+      name: nodes
+      schema: public
+  type: drop_relationship
+- args:
+    relationship: ib_partitions
+    table:
+      name: nodes
+      schema: public
+  type: drop_relationship
+- args:
+    relationship: ib_memberships
+    table:
+      name: nodes
+      schema: public
+  type: drop_relationship
+- args:
+    relationship: scope_maps
+    table:
+      name: oses
+      schema: public
+  type: drop_relationship
+- args:
+    relationship: scope_map
+    table:
+      name: routes
+      schema: public
+  type: drop_relationship
+- args:
+    relationship: subnet
+    table:
+      name: routes
+      schema: public
+  type: drop_relationship
+- args:
+    relationship: appliance
+    table:
+      name: scope_map
+      schema: public
+  type: drop_relationship
+- args:
+    relationship: environment
+    table:
+      name: scope_map
+      schema: public
+  type: drop_relationship
+- args:
+    relationship: node
+    table:
+      name: scope_map
+      schema: public
+  type: drop_relationship
+- args:
+    relationship: ose
+    table:
+      name: scope_map
+      schema: public
+  type: drop_relationship
+- args:
+    relationship: firewall_rules
+    table:
+      name: scope_map
+      schema: public
+  type: drop_relationship
+- args:
+    relationship: routes
+    table:
+      name: scope_map
+      schema: public
+  type: drop_relationship
+- args:
+    relationship: storage_controllers
+    table:
+      name: scope_map
+      schema: public
+  type: drop_relationship
+- args:
+    relationship: storage_partitions
+    table:
+      name: scope_map
+      schema: public
+  type: drop_relationship
+- args:
+    relationship: scope_map
+    table:
+      name: storage_controller
+      schema: public
+  type: drop_relationship
+- args:
+    relationship: scope_map
+    table:
+      name: storage_partition
+      schema: public
+  type: drop_relationship
+- args:
+    relationship: firewall_rules
+    table:
+      name: subnets
+      schema: public
+  type: drop_relationship
+- args:
+    relationship: firewallRulesByOutSubnetId
+    table:
+      name: subnets
+      schema: public
+  type: drop_relationship
+- args:
+    relationship: networks
+    table:
+      name: subnets
+      schema: public
+  type: drop_relationship
+- args:
+    relationship: routes
+    table:
+      name: subnets
+      schema: public
+  type: drop_relationship

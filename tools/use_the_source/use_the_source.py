@@ -22,11 +22,11 @@ grafts_to_site_packages = (
 	("graph_ql", "stack/graph_ql"),
 	("graph_ql/pylib", "stack"),
 	("db", "stack/db"),
+	("db/pylib", "stack"),
 	("ws-client/pylib", "")
 )
 
 bin_file_grafts = (
-	("command/stack.py", "/opt/stack/bin/stack"),
 	("discovery/bin/discover-nodes.py", "/opt/stack/sbin/discover-nodes"),
 	("mq/clients/publish.py", "/opt/stack/bin/smq-publish"),
 	("mq/clients/channel-ctrl.py", "/opt/stack/bin/channel-ctrl"),
