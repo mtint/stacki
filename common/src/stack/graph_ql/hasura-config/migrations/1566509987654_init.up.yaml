@@ -1,0 +1,623 @@
+- args:
+    allowlist: []
+    functions: []
+    query_collections: []
+    remote_schemas: []
+    tables:
+    - array_relationships: []
+      delete_permissions: []
+      event_triggers: []
+      insert_permissions: []
+      object_relationships:
+      - comment: null
+        name: roll
+        using:
+          foreign_key_constraint_on: Roll
+      select_permissions: []
+      table: stacks
+      update_permissions: []
+    - array_relationships:
+      - comment: null
+        name: stacks
+        using:
+          foreign_key_constraint_on:
+            column: Roll
+            table: stacks
+      delete_permissions: []
+      event_triggers: []
+      insert_permissions: []
+      object_relationships: []
+      select_permissions: []
+      table: rolls
+      update_permissions: []
+    - array_relationships: []
+      delete_permissions: []
+      event_triggers: []
+      insert_permissions: []
+      object_relationships: []
+      select_permissions: []
+      table: cart_stacks
+      update_permissions: []
+    - array_relationships: []
+      delete_permissions: []
+      event_triggers: []
+      insert_permissions: []
+      object_relationships: []
+      select_permissions: []
+      table: boot
+      update_permissions: []
+    - array_relationships:
+      - comment: null
+        name: firmware_models
+        using:
+          foreign_key_constraint_on:
+            column: make_id
+            table: firmware_model
+      delete_permissions: []
+      event_triggers: []
+      insert_permissions: []
+      object_relationships:
+      - comment: null
+        name: firmware_version_regex
+        using:
+          foreign_key_constraint_on: version_regex_id
+      select_permissions: []
+      table: firmware_make
+      update_permissions: []
+    - array_relationships: []
+      delete_permissions: []
+      event_triggers: []
+      insert_permissions: []
+      object_relationships: []
+      select_permissions: []
+      table: tags
+      update_permissions: []
+    - array_relationships:
+      - comment: null
+        name: firewall_rules
+        using:
+          foreign_key_constraint_on:
+            column: scope_map_id
+            table: firewall_rules
+      - comment: null
+        name: routes
+        using:
+          foreign_key_constraint_on:
+            column: scope_map_id
+            table: routes
+      - comment: null
+        name: storage_controllers
+        using:
+          foreign_key_constraint_on:
+            column: scope_map_id
+            table: storage_controller
+      - comment: null
+        name: storage_partitions
+        using:
+          foreign_key_constraint_on:
+            column: scope_map_id
+            table: storage_partition
+      delete_permissions: []
+      event_triggers: []
+      insert_permissions: []
+      object_relationships:
+      - comment: null
+        name: appliance
+        using:
+          foreign_key_constraint_on: appliance_id
+      - comment: null
+        name: environment
+        using:
+          foreign_key_constraint_on: environment_id
+      - comment: null
+        name: node
+        using:
+          foreign_key_constraint_on: node_id
+      - comment: null
+        name: ose
+        using:
+          foreign_key_constraint_on: os_id
+      select_permissions: []
+      table: scope_map
+      update_permissions: []
+    - array_relationships:
+      - comment: null
+        name: firmware_mappings
+        using:
+          foreign_key_constraint_on:
+            column: firmware_id
+            table: firmware_mapping
+      delete_permissions: []
+      event_triggers: []
+      insert_permissions: []
+      object_relationships:
+      - comment: null
+        name: firmware_model
+        using:
+          foreign_key_constraint_on: model_id
+      select_permissions: []
+      table: firmware
+      update_permissions: []
+    - array_relationships: []
+      delete_permissions: []
+      event_triggers: []
+      insert_permissions: []
+      object_relationships: []
+      select_permissions: []
+      table: public_keys
+      update_permissions: []
+    - array_relationships:
+      - comment: null
+        name: bootactions
+        using:
+          foreign_key_constraint_on:
+            column: BootName
+            table: bootactions
+      delete_permissions: []
+      event_triggers: []
+      insert_permissions: []
+      object_relationships: []
+      select_permissions: []
+      table: bootnames
+      update_permissions: []
+    - array_relationships:
+      - comment: null
+        name: firmware_models
+        using:
+          foreign_key_constraint_on:
+            column: imp_id
+            table: firmware_model
+      delete_permissions: []
+      event_triggers: []
+      insert_permissions: []
+      object_relationships: []
+      select_permissions: []
+      table: firmware_imp
+      update_permissions: []
+    - array_relationships: []
+      delete_permissions: []
+      event_triggers: []
+      insert_permissions: []
+      object_relationships: []
+      select_permissions: []
+      table: carts
+      update_permissions: []
+    - array_relationships: []
+      delete_permissions: []
+      event_triggers: []
+      insert_permissions: []
+      object_relationships: []
+      select_permissions: []
+      table: attributes_doc
+      update_permissions: []
+    - array_relationships: []
+      delete_permissions: []
+      event_triggers: []
+      insert_permissions: []
+      object_relationships: []
+      select_permissions: []
+      table: aliases
+      update_permissions: []
+    - array_relationships:
+      - comment: null
+        name: firewall_rules
+        using:
+          foreign_key_constraint_on:
+            column: in_subnet_id
+            table: firewall_rules
+      - comment: null
+        name: firewallRulesByOutSubnetId
+        using:
+          foreign_key_constraint_on:
+            column: out_subnet_id
+            table: firewall_rules
+      - comment: null
+        name: networks
+        using:
+          foreign_key_constraint_on:
+            column: Subnet
+            table: networks
+      - comment: null
+        name: routes
+        using:
+          foreign_key_constraint_on:
+            column: subnet_id
+            table: routes
+      delete_permissions: []
+      event_triggers: []
+      insert_permissions: []
+      object_relationships: []
+      select_permissions: []
+      table: subnets
+      update_permissions: []
+    - array_relationships:
+      - comment: null
+        name: ib_memberships
+        using:
+          foreign_key_constraint_on:
+            column: interface
+            table: ib_memberships
+      delete_permissions: []
+      event_triggers: []
+      insert_permissions: []
+      object_relationships:
+      - comment: null
+        name: subnet
+        using:
+          foreign_key_constraint_on: Subnet
+      - comment: null
+        name: node
+        using:
+          foreign_key_constraint_on: Node
+      select_permissions: []
+      table: networks
+      update_permissions: []
+    - array_relationships:
+      - comment: null
+        name: ib_memberships
+        using:
+          foreign_key_constraint_on:
+            column: part_name
+            table: ib_memberships
+      delete_permissions: []
+      event_triggers: []
+      insert_permissions: []
+      object_relationships:
+      - comment: null
+        name: node
+        using:
+          foreign_key_constraint_on: switch
+      select_permissions: []
+      table: ib_partitions
+      update_permissions: []
+    - array_relationships: []
+      delete_permissions: []
+      event_triggers: []
+      insert_permissions: []
+      object_relationships:
+      - comment: null
+        name: network
+        using:
+          foreign_key_constraint_on: interface
+      - comment: null
+        name: ib_partition
+        using:
+          foreign_key_constraint_on: part_name
+      - comment: null
+        name: node
+        using:
+          foreign_key_constraint_on: switch
+      select_permissions: []
+      table: ib_memberships
+      update_permissions: []
+    - array_relationships:
+      - comment: null
+        name: firmware_makes
+        using:
+          foreign_key_constraint_on:
+            column: version_regex_id
+            table: firmware_make
+      - comment: null
+        name: firmware_models
+        using:
+          foreign_key_constraint_on:
+            column: version_regex_id
+            table: firmware_model
+      delete_permissions: []
+      event_triggers: []
+      insert_permissions: []
+      object_relationships: []
+      select_permissions: []
+      table: firmware_version_regex
+      update_permissions: []
+    - array_relationships:
+      - comment: null
+        name: nodes
+        using:
+          foreign_key_constraint_on:
+            column: Appliance
+            table: nodes
+      - comment: null
+        name: scope_maps
+        using:
+          foreign_key_constraint_on:
+            column: appliance_id
+            table: scope_map
+      delete_permissions: []
+      event_triggers: []
+      insert_permissions: []
+      object_relationships: []
+      select_permissions: []
+      table: appliances
+      update_permissions: []
+    - array_relationships:
+      - comment: null
+        name: scope_maps
+        using:
+          foreign_key_constraint_on:
+            column: environment_id
+            table: scope_map
+      - comment: null
+        name: nodes
+        using:
+          foreign_key_constraint_on:
+            column: Environment
+            table: nodes
+      delete_permissions: []
+      event_triggers: []
+      insert_permissions: []
+      object_relationships: []
+      select_permissions: []
+      table: environments
+      update_permissions: []
+    - array_relationships:
+      - comment: null
+        name: firmware_mappings
+        using:
+          foreign_key_constraint_on:
+            column: node_id
+            table: firmware_mapping
+      - comment: null
+        name: ib_memberships
+        using:
+          foreign_key_constraint_on:
+            column: switch
+            table: ib_memberships
+      - comment: null
+        name: ib_partitions
+        using:
+          foreign_key_constraint_on:
+            column: switch
+            table: ib_partitions
+      - comment: null
+        name: scope_maps
+        using:
+          foreign_key_constraint_on:
+            column: node_id
+            table: scope_map
+      - comment: null
+        name: interfaces
+        using:
+          foreign_key_constraint_on:
+            column: Node
+            table: networks
+      delete_permissions: []
+      event_triggers: []
+      insert_permissions: []
+      object_relationships:
+      - comment: null
+        name: appliance
+        using:
+          foreign_key_constraint_on: Appliance
+      - comment: null
+        name: box
+        using:
+          foreign_key_constraint_on: Box
+      - comment: null
+        name: environment
+        using:
+          foreign_key_constraint_on: Environment
+      - comment: null
+        name: os_action
+        using:
+          foreign_key_constraint_on: OSAction
+      - comment: null
+        name: install_action
+        using:
+          foreign_key_constraint_on: InstallAction
+      select_permissions: []
+      table: nodes
+      update_permissions: []
+    - array_relationships:
+      - comment: null
+        name: nodes
+        using:
+          foreign_key_constraint_on:
+            column: InstallAction
+            table: nodes
+      - comment: null
+        name: nodesByOsaction
+        using:
+          foreign_key_constraint_on:
+            column: OSAction
+            table: nodes
+      delete_permissions: []
+      event_triggers: []
+      insert_permissions: []
+      object_relationships:
+      - comment: null
+        name: bootname
+        using:
+          foreign_key_constraint_on: BootName
+      select_permissions: []
+      table: bootactions
+      update_permissions: []
+    - array_relationships:
+      - comment: null
+        name: nodes
+        using:
+          foreign_key_constraint_on:
+            column: Box
+            table: nodes
+      delete_permissions: []
+      event_triggers: []
+      insert_permissions: []
+      object_relationships:
+      - comment: null
+        name: os
+        using:
+          foreign_key_constraint_on: OS
+      select_permissions: []
+      table: boxes
+      update_permissions: []
+    - array_relationships: []
+      delete_permissions: []
+      event_triggers: []
+      insert_permissions: []
+      object_relationships:
+      - comment: null
+        name: scope_map
+        using:
+          foreign_key_constraint_on: scope_map_id
+      select_permissions: []
+      table: storage_partition
+      update_permissions: []
+    - array_relationships: []
+      delete_permissions: []
+      event_triggers: []
+      insert_permissions: []
+      object_relationships: []
+      select_permissions: []
+      table: access
+      update_permissions: []
+    - array_relationships: []
+      delete_permissions: []
+      event_triggers: []
+      insert_permissions: []
+      object_relationships: []
+      select_permissions: []
+      table: groups
+      update_permissions: []
+    - array_relationships: []
+      delete_permissions: []
+      event_triggers: []
+      insert_permissions: []
+      object_relationships:
+      - comment: null
+        name: subnet
+        using:
+          foreign_key_constraint_on: in_subnet_id
+      - comment: null
+        name: subnetByOutSubnetId
+        using:
+          foreign_key_constraint_on: out_subnet_id
+      - comment: null
+        name: scope_map
+        using:
+          foreign_key_constraint_on: scope_map_id
+      select_permissions: []
+      table: firewall_rules
+      update_permissions: []
+    - array_relationships:
+      - comment: null
+        name: firmwares
+        using:
+          foreign_key_constraint_on:
+            column: model_id
+            table: firmware
+      delete_permissions: []
+      event_triggers: []
+      insert_permissions: []
+      object_relationships:
+      - comment: null
+        name: firmware_imp
+        using:
+          foreign_key_constraint_on: imp_id
+      - comment: null
+        name: firmware_make
+        using:
+          foreign_key_constraint_on: make_id
+      - comment: null
+        name: firmware_version_regex
+        using:
+          foreign_key_constraint_on: version_regex_id
+      select_permissions: []
+      table: firmware_model
+      update_permissions: []
+    - array_relationships: []
+      delete_permissions: []
+      event_triggers: []
+      insert_permissions: []
+      object_relationships: []
+      select_permissions: []
+      table: partitions
+      update_permissions: []
+    - array_relationships: []
+      delete_permissions: []
+      event_triggers: []
+      insert_permissions: []
+      object_relationships: []
+      select_permissions: []
+      table: memberships
+      update_permissions: []
+    - array_relationships: []
+      delete_permissions: []
+      event_triggers: []
+      insert_permissions: []
+      object_relationships:
+      - comment: null
+        name: scope_map
+        using:
+          foreign_key_constraint_on: scope_map_id
+      - comment: null
+        name: subnet
+        using:
+          foreign_key_constraint_on: subnet_id
+      select_permissions: []
+      table: routes
+      update_permissions: []
+    - array_relationships:
+      - comment: null
+        name: scope_maps
+        using:
+          foreign_key_constraint_on:
+            column: os_id
+            table: scope_map
+      - comment: null
+        name: boxes
+        using:
+          foreign_key_constraint_on:
+            column: OS
+            table: boxes
+      delete_permissions: []
+      event_triggers: []
+      insert_permissions: []
+      object_relationships: []
+      select_permissions: []
+      table: oses
+      update_permissions: []
+    - array_relationships: []
+      delete_permissions: []
+      event_triggers: []
+      insert_permissions: []
+      object_relationships:
+      - comment: null
+        name: firmware
+        using:
+          foreign_key_constraint_on: firmware_id
+      - comment: null
+        name: node
+        using:
+          foreign_key_constraint_on: node_id
+      select_permissions: []
+      table: firmware_mapping
+      update_permissions: []
+    - array_relationships: []
+      delete_permissions: []
+      event_triggers: []
+      insert_permissions: []
+      object_relationships:
+      - comment: null
+        name: scope_map
+        using:
+          foreign_key_constraint_on: scope_map_id
+      select_permissions: []
+      table: storage_controller
+      update_permissions: []
+    - array_relationships: []
+      delete_permissions: []
+      event_triggers: []
+      insert_permissions: []
+      object_relationships: []
+      select_permissions: []
+      table: attributes
+      update_permissions: []
+    - array_relationships: []
+      delete_permissions: []
+      event_triggers: []
+      insert_permissions: []
+      object_relationships: []
+      select_permissions: []
+      table: switchports
+      update_permissions: []
+  type: replace_metadata

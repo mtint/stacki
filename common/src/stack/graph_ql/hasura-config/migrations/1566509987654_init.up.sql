@@ -45,9 +45,9 @@ CREATE TABLE public.boot (
 );
 CREATE TABLE public.bootactions (
     "ID" integer NOT NULL,
-    "Args" character varying(255),
+    "Args" text,
     "BootName" integer NOT NULL,
-    "Kernel" character varying(255),
+    "Kernel" character varying,
     "OS" integer,
     "Ramdisk" character varying(255)
 );
@@ -626,6 +626,10 @@ CREATE INDEX subnets_name ON public.subnets USING btree (name);
 CREATE INDEX "tags_Scope" ON public.tags USING btree ("Scope");
 CREATE INDEX "tags_ScopeID" ON public.tags USING btree ("ScopeID");
 CREATE INDEX "tags_Tag" ON public.tags USING btree ("Tag");
+ALTER TABLE ONLY public.bootactions
+    ADD CONSTRAINT "bootactions_BootName_fkey" FOREIGN KEY ("BootName") REFERENCES public.bootnames("ID") ON UPDATE RESTRICT ON DELETE RESTRICT;
+ALTER TABLE ONLY public.boxes
+    ADD CONSTRAINT "boxes_OS_fkey" FOREIGN KEY ("OS") REFERENCES public.oses("ID") ON UPDATE RESTRICT ON DELETE RESTRICT;
 ALTER TABLE ONLY public.firewall_rules
     ADD CONSTRAINT firewall_rules_in_subnet_id_fkey FOREIGN KEY (in_subnet_id) REFERENCES public.subnets("ID");
 ALTER TABLE ONLY public.firewall_rules
@@ -655,9 +659,19 @@ ALTER TABLE ONLY public.ib_memberships
 ALTER TABLE ONLY public.ib_partitions
     ADD CONSTRAINT ib_partitions_switch_fkey FOREIGN KEY (switch) REFERENCES public.nodes("ID");
 ALTER TABLE ONLY public.networks
+    ADD CONSTRAINT "networks_Node_fkey" FOREIGN KEY ("Node") REFERENCES public.nodes("ID") ON UPDATE RESTRICT ON DELETE RESTRICT;
+ALTER TABLE ONLY public.networks
     ADD CONSTRAINT "networks_Subnet_fkey" FOREIGN KEY ("Subnet") REFERENCES public.subnets("ID");
 ALTER TABLE ONLY public.nodes
     ADD CONSTRAINT "nodes_Appliance_fkey" FOREIGN KEY ("Appliance") REFERENCES public.appliances("ID");
+ALTER TABLE ONLY public.nodes
+    ADD CONSTRAINT "nodes_Box_fkey" FOREIGN KEY ("Box") REFERENCES public.boxes("ID") ON UPDATE RESTRICT ON DELETE RESTRICT;
+ALTER TABLE ONLY public.nodes
+    ADD CONSTRAINT "nodes_Environment_fkey" FOREIGN KEY ("Environment") REFERENCES public.environments("ID") ON UPDATE RESTRICT ON DELETE RESTRICT;
+ALTER TABLE ONLY public.nodes
+    ADD CONSTRAINT "nodes_InstallAction_fkey" FOREIGN KEY ("InstallAction") REFERENCES public.bootactions("ID") ON UPDATE RESTRICT ON DELETE RESTRICT;
+ALTER TABLE ONLY public.nodes
+    ADD CONSTRAINT "nodes_OSAction_fkey" FOREIGN KEY ("OSAction") REFERENCES public.bootactions("ID") ON UPDATE RESTRICT ON DELETE RESTRICT;
 ALTER TABLE ONLY public.routes
     ADD CONSTRAINT routes_scope_map_id_fkey FOREIGN KEY (scope_map_id) REFERENCES public.scope_map(id);
 ALTER TABLE ONLY public.routes
@@ -670,6 +684,8 @@ ALTER TABLE ONLY public.scope_map
     ADD CONSTRAINT scope_map_node_id_fkey FOREIGN KEY (node_id) REFERENCES public.nodes("ID");
 ALTER TABLE ONLY public.scope_map
     ADD CONSTRAINT scope_map_os_id_fkey FOREIGN KEY (os_id) REFERENCES public.oses("ID");
+ALTER TABLE ONLY public.stacks
+    ADD CONSTRAINT "stacks_Roll_fkey" FOREIGN KEY ("Roll") REFERENCES public.rolls("ID") ON UPDATE RESTRICT ON DELETE RESTRICT;
 ALTER TABLE ONLY public.storage_controller
     ADD CONSTRAINT storage_controller_scope_map_id_fkey FOREIGN KEY (scope_map_id) REFERENCES public.scope_map(id);
 ALTER TABLE ONLY public.storage_partition
