@@ -8,7 +8,7 @@ services:
     ports:
     - "5432:5432"
   graphql-engine:
-    image: hasura/graphql-engine:v1.0.0-beta.4
+    image: hasura/graphql-engine:v1.0.0-beta.4.cli-migrations
     ports:
     - "8081:8080"
     depends_on:
@@ -20,5 +20,16 @@ services:
       HASURA_GRAPHQL_ENABLED_LOG_TYPES: startup, http-log, webhook-log, websocket-log, query-log
       HASURA_GRAPHQL_ENABLE_TELEMETRY: "false"
       HASURA_GRAPHQL_ADMIN_SECRET: myadminsecretkey
+    volumes:
+    - ./hasura-config/migrations:/hasura-migrations
+  stacki-api:
+    image: stacki/graphql-api
+    ports:
+    - "8082:8000"
+    depends_on:
+    - "graphql-engine"
+    restart: always
+    environment:
+      HASURA_GRAPHQL_URL: http://graphql-engine:8080/v1/graphql
 volumes:
   db_data:

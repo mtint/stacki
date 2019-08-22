@@ -1,6 +1,7 @@
 import requests
 import pymysql
 import os
+import datetime
 
 from pprint import pprint
 
@@ -89,6 +90,9 @@ def insert_records(table_name, records):
     pprint(results)
 
 for table_name in get_table_names():
+    if 'yoyo' in table_name:
+        continue
+
     records = select_query(table_name)
     insert_records(table_name, records)
 
