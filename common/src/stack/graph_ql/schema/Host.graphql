@@ -20,6 +20,7 @@ type AddHost {
 
 extend type Query {
   allHosts: [Host]
+  list_host: [Host]
 }
 
 extend type Mutation {

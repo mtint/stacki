@@ -87,12 +87,16 @@ def insert_records(table_name, records):
 
     # TODO: deal with foreign keys
     results = r.json()
-    pprint(results)
+    #pprint(results)
 
 for table_name in get_table_names():
     if 'yoyo' in table_name:
         continue
 
+    if table_name != 'bootactions':
+        continue
+
     records = select_query(table_name)
+    pprint(records)
     insert_records(table_name, records)
 

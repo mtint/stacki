@@ -28,9 +28,36 @@ type_defs = load_schema_from_path(
 
 list_host_query = """
 {
-    nodes {
-        name: Name
+  nodes {
+    id: ID
+    name: Name
+    rack: Rack
+    rank: Rank
+    appliance {
+      name: Name
     }
+    rank: Rank
+    box {
+      name: Name
+      os {
+        name: Name
+      }
+    }
+    environment {
+      name: Name
+    }
+    os_action {
+      bootname {
+        name: Name
+      }
+    }
+    install_action {
+      bootname {
+        name: Name
+      }
+    }
+    comment: Comment
+  }
 }
 """
 
@@ -39,10 +66,13 @@ headers = { "x-hasura-admin-secret": "myadminsecretkey"}
 
 query = QueryType()
 
-@query.field("nodes")
+@query.field("list_host")
 def resolve_nodes(*_):
-    response = requests.post(HASURA_GRAPHQL_URL, headers=headers, json={"query": list_host_query})
-    result = response.json().get('data')
+    response = requests.post(HASURA_GRAPHQL_URL, headers=headers, json={"query": list_host_query}).json()
+    result, errors = [response.get('data'), response.get('errors')]
+    if errors:
+        raise Exception(errors.get('message'))
+
     return result['nodes']
 
 @query.field("access")
