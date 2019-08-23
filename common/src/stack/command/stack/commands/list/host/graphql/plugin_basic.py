@@ -26,9 +26,6 @@ class Plugin(stack.commands.Plugin, stack.commands.list.command):
 			# of hosts to change and keeps the mq happy -- doesn't
 			# break the status in 'list host'.
 			keys.append('id')
-			for name, id in self.db.select('name, id from nodes'):
-				if name in host_info:
-					host_info[name] = [ id ]
 
 		rows = self.graphql(query_string = """
 		query nodes($expanded: Boolean!) {
