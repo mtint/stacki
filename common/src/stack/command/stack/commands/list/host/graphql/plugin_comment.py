@@ -7,7 +7,7 @@
 import stack.commands
 
 
-class Plugin(stack.commands.Plugin):
+class Plugin(stack.commands.Plugin, stack.commands.list.command):
 
 	def provides(self):
 		return 'comment'
@@ -20,13 +20,19 @@ class Plugin(stack.commands.Plugin):
 
 		host_info = dict.fromkeys(hosts)
 
-		for row in self.db.select(
-			"""
-			name, comment from nodes n
-			"""):
+		results = self.graphql(query_string = """
+		{
+			nodes {
+				name: Name
+				comment: Comment
+			}
+		}
+		""")
 
-			if row[0] in host_info:
-				host_info[row[0]] = row[1:]
+		for host in results['nodes']:
+			host_name = host.get('name')
+			if host_name in host_info:
+				host_info[host_name] = (host.get('comment'),)
 
 		return {'keys'  : ['comment',],
 			'values': host_info }

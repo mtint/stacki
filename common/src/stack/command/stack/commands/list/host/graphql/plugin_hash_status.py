@@ -9,7 +9,7 @@ import stack.commands
 import redis
 import json
 
-class Plugin(stack.commands.Plugin):
+class Plugin(stack.commands.Plugin, stack.commands.list.command):
 
 	def requires(self):
 		return ['basic', 'redis_status']
@@ -27,9 +27,18 @@ class Plugin(stack.commands.Plugin):
 
 		hash_status = dict.fromkeys(hosts)
 
+		results = self.graphql(query_string = """
+		{
+			nodes {
+				id: ID
+				name: Name
+			}
+		}
+		""")
+
 		ids = {}
-		for name, id in self.db.select('name, id from nodes'):
-			ids[name] = id
+		for host in results['nodes']:
+			ids[host.get('name')] = host.get('id')
 
 		for host in hosts:
 			try:
