@@ -31,5 +31,7 @@ services:
     restart: always
     environment:
       HASURA_GRAPHQL_URL: http://graphql-engine:8080/v1/graphql
+    volumes:
+    - ./schema:/app/api/schema
 volumes:
   db_data:

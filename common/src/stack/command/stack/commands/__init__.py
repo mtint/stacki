@@ -1671,14 +1671,14 @@ class Command:
 		"""
 		# TODO:  Clean this up
 		import requests
-		headers = {'Content-Type': 'application/json'}
+		headers = { "x-hasura-admin-secret": "myadminsecretkey"}
 		# Requires the http server to be running
-		url = 'http://localhost:8081/'
+		url = 'http://localhost:8081/v1/graphql'
 
 		if not variables:
 			variables = {}
 
-		response = requests.post(url, headers=headers,json={"query":query_string,"variables":variables}).json()
+		response = requests.post(url, headers=headers, json={"query":query_string,"variables":variables}).json()
 
 		if "errors" in response:
 			raise Exception(response['errors'][0]['message'])

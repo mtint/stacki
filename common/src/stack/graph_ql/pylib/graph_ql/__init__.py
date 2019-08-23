@@ -71,7 +71,8 @@ def resolve_nodes(*_):
     response = requests.post(HASURA_GRAPHQL_URL, headers=headers, json={"query": list_host_query}).json()
     result, errors = [response.get('data'), response.get('errors')]
     if errors:
-        raise Exception(errors.get('message'))
+        raise Exception(errors)
+        #raise Exception(errors.get('message'))
 
     return result['nodes']
 
