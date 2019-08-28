@@ -8,26 +8,21 @@ import os
 from peewee import *
 import pymysql
 
-database = PostgresqlDatabase('postgres', host='localhost', user='postgres')
-
-# @copyright@
-# Copyright (c) 2006 - 2019 Teradata
-# All rights reserved. Stacki(r) v5.x stacki.com
-# https://github.com/Teradata/stacki/blob/master/LICENSE.txt
-# @copyright@
 
 
-def connect_db(username="apache", passwd=""):
-	passwd = ""
+def get_database_pw():
 	try:
 		file = open("/etc/apache.my.cnf", "r")
 		for line in file.readlines():
 			if line.startswith("password"):
 				passwd = line.split("=")[1].strip()
-				break
+				return passwd
 		file.close()
 	except:
-		pass
+		return ""
+
+def connect_db(username="apache", passwd=""):
+	passwd = get_database_pw()
 
 	# Connect to a copy of the database if we are running pytest-xdist
 	if "PYTEST_XDIST_WORKER" in os.environ:
@@ -56,6 +51,7 @@ def connect_db(username="apache", passwd=""):
 	return db.cursor(pymysql.cursors.DictCursor)
 
 db = connect_db()
+database = MySQLDatabase('cluster', user='apache', password=get_database_pw(), host='localhost')
 
 
 class UnknownField(object):

@@ -57,9 +57,9 @@ class Command(command):
 
 	def generate_type_fields(self, table_name, description, reference):
 		fields = {}
-		for field in description:
+		for field_name, field in description.items():
 			field_name = self.camel_case_it(field.name)
-			field_type = self.get_scalar_value(field.data_type, not field.null)
+			field_type = self.get_scalar_value(field.field_type, not field.null)
 			fields[field_name] = field_type
 
 		for field in reference:

@@ -22,7 +22,6 @@ import json
 HASURA_GRAPHQL_URL = os.environ.get('HASURA_GRAPHQL_URL')
 
 type_defs = load_schema_from_path(
-    #"/opt/stack/lib/python3.7/site-packages/stack/graph_ql/schema/"
     "./api/schema/"
 )
 
