@@ -1,6 +1,17 @@
 from peewee import *
 
-database = MySQLDatabase('cluster', **{'charset': 'utf8', 'use_unicode': True, 'user': 'apache', 'password': '5byCkU7eW8joidoa'})
+def get_database_pw():
+	try:
+		file = open("/etc/apache.my.cnf", "r")
+		for line in file.readlines():
+			if line.startswith("password"):
+				passwd = line.split("=")[1].strip()
+				return passwd
+		file.close()
+	except:
+		return ""
+
+database = MySQLDatabase('cluster', **{'charset': 'utf8', 'use_unicode': True, 'user': 'apache', 'password': get_database_pw()})
 
 class UnknownField(object):
     def __init__(self, *_, **__): pass

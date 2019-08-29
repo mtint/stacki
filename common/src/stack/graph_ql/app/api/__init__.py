@@ -13,54 +13,16 @@ from ariadne import (
     load_schema_from_path,
 )
 from ariadne.asgi import GraphQL
-#from stack.db import *
 import asyncio
 import requests
 import os
 import json
 
-HASURA_GRAPHQL_URL = os.environ.get('HASURA_GRAPHQL_URL')
+from . import models
 
 type_defs = load_schema_from_path(
     "./api/schema/"
 )
-
-list_host_query = """
-{
-  nodes {
-    id: ID
-    name: Name
-    rack: Rack
-    rank: Rank
-    appliance {
-      name: Name
-    }
-    rank: Rank
-    box {
-      name: Name
-      os {
-        name: Name
-      }
-    }
-    environment {
-      name: Name
-    }
-    os_action {
-      bootname {
-        name: Name
-      }
-    }
-    install_action {
-      bootname {
-        name: Name
-      }
-    }
-    comment: Comment
-  }
-}
-"""
-
-headers = { "x-hasura-admin-secret": "myadminsecretkey"}
 
 
 query = QueryType()
