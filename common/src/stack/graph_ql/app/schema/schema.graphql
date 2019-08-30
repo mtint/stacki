@@ -1,3 +1,8 @@
+enum Choice {
+	YES
+	NO
+}
+
 type Mutation {
 	_empty: String
 }

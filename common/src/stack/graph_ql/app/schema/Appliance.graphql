@@ -1,0 +1,15 @@
+type Appliance {
+  id: Int
+  name: String
+  public: String
+}
+
+extend type Query {
+	appliances(id: Int, name: String): [Appliance]
+}
+
+extend type Mutation {
+	addAppliance(name: String!, public: Choice): Appliance!
+	updateAppliance(id: Int!, name: String, public: Choice): Appliance!
+	deleteAppliance(id: Int!): Boolean!
+}
