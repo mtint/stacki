@@ -1,37 +1,18 @@
 version: '3.6'
 services:
-  postgres:
-    image: postgres
+  stacki-db:
+    image: stacki/mariadb
     restart: always
     volumes:
-    - db_data:/var/lib/postgresql/data
+    - db_data:/var/lib/stacki/data
     ports:
-    - "5432:5432"
-  graphql-engine:
-    image: hasura/graphql-engine:v1.0.0-beta.4.cli-migrations
-    ports:
-    - "8081:8080"
-    depends_on:
-    - "postgres"
-    restart: always
-    environment:
-      HASURA_GRAPHQL_DATABASE_URL: postgres://postgres:@postgres:5432/postgres
-      HASURA_GRAPHQL_ENABLE_CONSOLE: "true" # set to "false" to disable console
-      HASURA_GRAPHQL_ENABLED_LOG_TYPES: startup, http-log, webhook-log, websocket-log, query-log
-      HASURA_GRAPHQL_ENABLE_TELEMETRY: "false"
-      HASURA_GRAPHQL_ADMIN_SECRET: myadminsecretkey
-    volumes:
-    - ./hasura-config/migrations:/hasura-migrations
+      - "3306:3306"
   stacki-api:
     image: stacki/graphql-api
     ports:
-    - "8082:8000"
+    - "8000:8000"
     depends_on:
-    - "graphql-engine"
+    - "stacki-db"
     restart: always
-    environment:
-      HASURA_GRAPHQL_URL: http://graphql-engine:8080/v1/graphql
-    volumes:
-    - ./schema:/app/api/schema
 volumes:
   db_data:
