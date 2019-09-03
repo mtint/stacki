@@ -48,11 +48,7 @@ type Bootnames {
   type: String!
 }
 
-type Boxes {
-  id: Int!
-  name: String!
-  os: Int!
-}
+
 
 type Carts {
   id: Int!

@@ -1,9 +1,10 @@
 type Box {
   id: Int
   name: String
-  os: String
+  os_id: String
+	os: Os
 }
 
 extend type Query {
-	allBoxes: [Box]
+	boxes: [Box]
 }

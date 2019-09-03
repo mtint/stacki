@@ -4,5 +4,6 @@ type Os {
 }
 
 extend type Query {
-  allOses: [Os]
+  oses: [Os]
+	os(id: Int!): Os
 }

@@ -26,8 +26,20 @@ type_defs = load_schema_from_path(
 )
 
 
+# TODO: Break this out into modules
 query = QueryType()
 mutations = MutationType()
+
+@query.field("boxes")
+def resolve_boxes(*_):
+	results, _ = db.run_sql("select id, name, os as os_id from boxes")
+	return results
+
+box = ObjectType("Box")
+@box.field('os')
+def resolve_os_from_id(box, *_):
+	result, _ = db.run_sql(f"select id, name from oses where id={box['os_id']}", fetchone = True)
+	return result
 
 @query.field("appliances")
 def resolve_appliances(*_):
@@ -38,6 +50,7 @@ def resolve_appliances(*_):
 def resolve_add_appliance(_, info, name, public = "no"):
 	# TODO: Fix SQL injection
 	# TODO: Maybe make the appliance names unique in the db
+	# TODO: Add kickstartable and managed attrs
 
 	cmd = f'INSERT INTO appliances (name, public) VALUES ("{name}", "{public}")'
 	db.run_sql(cmd)
@@ -87,7 +100,7 @@ def resolve_delete_appliance(_, info, id):
 
 	return True
 
-schema = make_executable_schema(type_defs, [query, mutations])
+schema = make_executable_schema(type_defs, [query, box, mutations])
 
 # Create an ASGI app using the schema, running in debug mode
 app = GraphQL(schema)

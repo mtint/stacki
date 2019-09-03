@@ -1,3 +1,4 @@
+"""Appliances"""
 type Appliance {
   id: Int
   name: String
@@ -5,6 +6,7 @@ type Appliance {
 }
 
 extend type Query {
+	"""List of all the appliances."""
 	appliances(id: Int, name: String): [Appliance]
 }
 
