@@ -2,9 +2,13 @@ type Box {
   id: Int
   name: String
   os_id: String
-	os: Os
+  os: Os
 }
 
 extend type Query {
-	boxes: [Box]
+  boxes: [Box]
+}
+
+extend type Mutation {
+  addBox(name: String!, os: String): Box
 }

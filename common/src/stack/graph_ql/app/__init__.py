@@ -7,7 +7,7 @@
 from ariadne import (
     ObjectType,
     QueryType,
-		MutationType,
+    MutationType,
     SubscriptionType,
     gql,
     make_executable_schema,
@@ -21,84 +21,134 @@ import json
 
 from . import db
 
-type_defs = load_schema_from_path(
-    "./app/schema/"
-)
+type_defs = load_schema_from_path("./app/schema/")
 
 
 # TODO: Break this out into modules
 query = QueryType()
 mutations = MutationType()
 
+
 @query.field("boxes")
 def resolve_boxes(*_):
-	results, _ = db.run_sql("select id, name, os as os_id from boxes")
-	return results
+    results, _ = db.run_sql("SELECT id, name, os AS os_id FROM boxes")
+    return results
+
+
+@query.field("oses")
+def resolve_oses(*_):
+    results, _ = db.run_sql("SELECT id, name FROM oses")
+    return results
+
+
+@mutations.field("addBox")
+def resolve_add_box(_, info, name, os="sles"):
+    # TODO: get default os FROM frontend's os
+
+    if name in [box["name"] for box in resolve_boxes()]:
+        raise Exception(f"box {name} exists")
+
+    for os_record in resolve_oses():
+        if os == os_record.get("name"):
+            os_id = os_record.get("id")
+            break
+    else:
+        raise Exception(f"{os} not found in oses")
+
+    # Insert box
+    cmd = "INSERT INTO boxes (name, os) VALUES (%s, %s)"
+    args = (name, os_id)
+    results, _ = db.run_sql(cmd, args)
+
+    # Get the recently inserted value
+    cmd = "SELECT id, name, os AS os_id FROM boxes WHERE name=%s"
+    args = (name,)
+    results, _ = db.run_sql(cmd, args, fetchone=True)
+    return results
+
 
 box = ObjectType("Box")
-@box.field('os')
-def resolve_os_from_id(box, *_):
-	result, _ = db.run_sql(f"select id, name from oses where id={box['os_id']}", fetchone = True)
-	return result
+
+
+@box.field("os")
+def resolve_os_FROM_id(box, *_):
+    print(box)
+    cmd = "SELECT id, name FROM oses WHERE id=%s"
+    args = (box["os_id"],)
+    result, _ = db.run_sql(cmd, args, fetchone=True)
+    return result
+
 
 @query.field("appliances")
 def resolve_appliances(*_):
-	results, _ = db.run_sql("select id, name, public from appliances")
-	return results
+    results, _ = db.run_sql("SELECT id, name, public FROM appliances")
+    return results
+
 
 @mutations.field("addAppliance")
-def resolve_add_appliance(_, info, name, public = "no"):
-	# TODO: Fix SQL injection
-	# TODO: Maybe make the appliance names unique in the db
-	# TODO: Add kickstartable and managed attrs
+def resolve_add_appliance(_, info, name, public="no"):
+    # TODO: Fix SQL injection
+    # TODO: Maybe make the appliance names unique in the db
+    # TODO: Add kickstartable and managed attrs
 
-	cmd = f'INSERT INTO appliances (name, public) VALUES ("{name}", "{public}")'
-	db.run_sql(cmd)
+    cmd = "INSERT INTO appliances (name, public) VALUES (%s, %s)"
+    args = (name, public)
+    db.run_sql(cmd, args)
 
-	cmd = f'SELECT id, name, public from appliances where name="{name}"'
-	result, _ = db.run_sql(cmd, fetchone=True)
+    cmd = "SELECT id, name, public FROM appliances where name=%s"
+    args = (name,)
+    result, _ = db.run_sql(cmd, args, fetchone=True)
 
-	return result
+    return result
+
 
 @mutations.field("updateAppliance")
-def resolve_update_appliance(_, info, id, name = None, public = None):
-	# TODO: Fix SQL injection
-	# TODO: Maybe make the appliance names unique in the db
-	# TODO: Check if the name collides
+def resolve_update_appliance(_, info, id, name=None, public=None):
+    # TODO: Fix SQL injection
+    # TODO: Maybe make the appliance names unique in the db
+    # TODO: Check if the name collides
 
-	cmd = f'SELECT id, name, public from appliances where id={id}'
-	appliance, _ = db.run_sql(cmd, fetchone=True)
-	if not appliance:
-		raise Exception("No appliance found")
+    cmd = "SELECT id, name, public FROM appliances where id=%s"
+    args = (id,)
+    appliance, _ = db.run_sql(cmd, args, fetchone=True)
+    if not appliance:
+        raise Exception("No appliance found")
 
-	if not name and not public:
-		return appliance
+    if not name and not public:
+        return appliance
 
-	update_params = []
-	if name:
-		update_params.append(f'name="{name}"')
-		
-	if public is not None:
-		update_params.append(f'public="{public}"')
+    update_params = []
+    args = ()
+    if name:
+        update_params.append('name="%s"')
+        args += (name,)
 
-	cmd = f'Update appliances set {",".join(update_params)} where id={id}'
-	db.run_sql(cmd)
+    if public is not None:
+        update_params.append('public="%s"')
+        args += (public,)
 
-	cmd = f'SELECT id, name, public from appliances where id={id}'
-	result, _ = db.run_sql(cmd, fetchone=True)
+    cmd = f'Update appliances set {",".join(update_params)}' + " where id=%s"
+    db.run_sql(cmd)
 
-	return result
+    cmd = "SELECT id, name, public FROM appliances where id=%s"
+    args = (id,)
+    result, _ = db.run_sql(cmd, fetchone=True)
+
+    return result
+
 
 @mutations.field("deleteAppliance")
 def resolve_delete_appliance(_, info, id):
 
-	cmd = f'DELETE from appliances where id={id}'
-	_, affected_rows = db.run_sql(cmd)
+    cmd = "DELETE FROM appliances where id=%s"
+    args = (id,)
+    _, affected_rows = db.run_sql(cmd, args)
 
-	if not affected_rows:
-		return False
+    if not affected_rows:
+        return False
 
-	return True
+    return True
+
 
 schema = make_executable_schema(type_defs, [query, box, mutations])
 

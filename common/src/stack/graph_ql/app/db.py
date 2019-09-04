@@ -1,60 +1,73 @@
 import os
 import pymysql
 
+
 def get_database_pw():
-	try:
-		file = open("/etc/apache.my.cnf", "r")
-		for line in file.readlines():
-			if line.startswith("password"):
-				passwd = line.split("=")[1].strip()
-				return passwd
-		file.close()
-	except:
-		return ""
+    try:
+        file = open("/etc/apache.my.cnf", "r")
+        for line in file.readlines():
+            if line.startswith("password"):
+                passwd = line.split("=")[1].strip()
+                return passwd
+        file.close()
+    except:
+        return ""
 
-def connect_db(username="apache", passwd=""):
-	passwd = get_database_pw()
 
-	# Connect to a copy of the database if we are running pytest-xdist
-	if "PYTEST_XDIST_WORKER" in os.environ:
-		db_name = "cluster" + os.environ["PYTEST_XDIST_WORKER"]
-	else:
-		db_name = "cluster"
+def connect_db(host="localhost", username="apache", passwd="", port=40000):
+    if not passwd:
+        passwd = get_database_pw()
 
-	if os.path.exists("/run/mysql/mysql.sock"):
-		db = pymysql.connect(
-			db=db_name,
-			user=username,
-			passwd=passwd,
-			host="localhost",
-			unix_socket="/run/mysql/mysql.sock",
-			autocommit=True,
-		)
-	else:
-		db = pymysql.connect(
-			db=db_name,
-			host="localhost",
-			port=40000,
-			user=username,
-			passwd=passwd,
-			autocommit=True,
-		)
-	return db.cursor(pymysql.cursors.DictCursor)
+    # Connect to a copy of the database if we are running pytest-xdist
+    if "PYTEST_XDIST_WORKER" in os.environ:
+        db_name = "cluster" + os.environ["PYTEST_XDIST_WORKER"]
+    else:
+        db_name = "cluster"
 
-db = connect_db()
+    if os.path.exists("/run/mysql/mysql.sock"):
+        db = pymysql.connect(
+            db=db_name,
+            user=username,
+            passwd=passwd,
+            host="localhost",
+            unix_socket="/run/mysql/mysql.sock",
+            autocommit=True,
+        )
+    else:
+        db = pymysql.connect(
+            db=db_name,
+            host="localhost",
+            port=port,
+            user=username,
+            passwd=passwd,
+            autocommit=True,
+        )
+    return db.cursor(pymysql.cursors.DictCursor)
 
-def run_sql(cmd, fetchone = False):
-	"""
-	Runs the SQL command
 
-	Returns:
-	results - either a list of results or a single result depending
-	on the fetchone arg
+docker_db = os.environ.get("USE_DOCKER_DB")
 
-	affected_rows - Number of rows affected
-	"""
-	affected_rows = db.execute(cmd)
-	if fetchone:
-		return (db.fetchone(), affected_rows)
+if docker_db:
+    db = connect_db(username="root", passwd="secret", port=3306)
+else:
+    db = connect_db()
 
-	return (db.fetchall(), affected_rows)
+
+def run_sql(cmd, args=None, fetchone=False):
+    """
+  Runs the SQL command
+
+  Returns:
+  results - either a list of results or a single result depending
+  on the fetchone arg
+
+  affected_rows - Number of rows affected
+  """
+    if not args:
+        args = ()
+    affected_rows = db.execute(cmd, args)
+    if fetchone:
+        return (db.fetchone(), affected_rows)
+
+    return (db.fetchall(), affected_rows)
+
