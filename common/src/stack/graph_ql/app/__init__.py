@@ -27,6 +27,11 @@ type_defs = load_schema_from_path("./app/schema/")
 # TODO: Break this out into modules
 query = QueryType()
 mutations = MutationType()
+box = ObjectType("Box")
+
+query_fields = [query]
+mutation_fields = [mutations]
+object_fields = [box]
 
 
 @query.field("boxes")
@@ -67,14 +72,23 @@ def resolve_add_box(_, info, name, os="sles"):
     return results
 
 
-box = ObjectType("Box")
+@mutations.field("deleteBox")
+def resolve_delete_box(_, info, id):
+
+    cmd = "DELETE FROM boxes WHERE id=%s"
+    args = (id,)
+    _, affected_rows = db.run_sql(cmd, args)
+
+    if not affected_rows:
+        return False
+
+    return True
 
 
 @box.field("os")
-def resolve_os_FROM_id(box, *_):
-    print(box)
+def resolve_os_from_id(box, *_):
     cmd = "SELECT id, name FROM oses WHERE id=%s"
-    args = (box["os_id"],)
+    args = (box.get("os_id"),)
     result, _ = db.run_sql(cmd, args, fetchone=True)
     return result
 
@@ -87,7 +101,6 @@ def resolve_appliances(*_):
 
 @mutations.field("addAppliance")
 def resolve_add_appliance(_, info, name, public="no"):
-    # TODO: Fix SQL injection
     # TODO: Maybe make the appliance names unique in the db
     # TODO: Add kickstartable and managed attrs
 
@@ -95,7 +108,7 @@ def resolve_add_appliance(_, info, name, public="no"):
     args = (name, public)
     db.run_sql(cmd, args)
 
-    cmd = "SELECT id, name, public FROM appliances where name=%s"
+    cmd = "SELECT id, name, public FROM appliances WHERE name=%s"
     args = (name,)
     result, _ = db.run_sql(cmd, args, fetchone=True)
 
@@ -104,11 +117,10 @@ def resolve_add_appliance(_, info, name, public="no"):
 
 @mutations.field("updateAppliance")
 def resolve_update_appliance(_, info, id, name=None, public=None):
-    # TODO: Fix SQL injection
     # TODO: Maybe make the appliance names unique in the db
     # TODO: Check if the name collides
 
-    cmd = "SELECT id, name, public FROM appliances where id=%s"
+    cmd = "SELECT id, name, public FROM appliances WHERE id=%s"
     args = (id,)
     appliance, _ = db.run_sql(cmd, args, fetchone=True)
     if not appliance:
@@ -127,10 +139,10 @@ def resolve_update_appliance(_, info, id, name=None, public=None):
         update_params.append('public="%s"')
         args += (public,)
 
-    cmd = f'Update appliances set {",".join(update_params)}' + " where id=%s"
+    cmd = f'UPDATE appliances SET {",".join(update_params)}' + " WHERE id=%s"
     db.run_sql(cmd)
 
-    cmd = "SELECT id, name, public FROM appliances where id=%s"
+    cmd = "SELECT id, name, public FROM appliances WHERE id=%s"
     args = (id,)
     result, _ = db.run_sql(cmd, fetchone=True)
 
@@ -140,7 +152,7 @@ def resolve_update_appliance(_, info, id, name=None, public=None):
 @mutations.field("deleteAppliance")
 def resolve_delete_appliance(_, info, id):
 
-    cmd = "DELETE FROM appliances where id=%s"
+    cmd = "DELETE FROM appliances WHERE id=%s"
     args = (id,)
     _, affected_rows = db.run_sql(cmd, args)
 
@@ -150,7 +162,9 @@ def resolve_delete_appliance(_, info, id):
     return True
 
 
-schema = make_executable_schema(type_defs, [query, box, mutations])
+schema = make_executable_schema(
+    type_defs, query_fields + mutation_fields + object_fields
+)
 
 # Create an ASGI app using the schema, running in debug mode
 app = GraphQL(schema)
