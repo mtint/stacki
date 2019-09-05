@@ -29,14 +29,14 @@ def connect_db(host="localhost", username="apache", passwd="", port=40000):
             db=db_name,
             user=username,
             passwd=passwd,
-            host="localhost",
+            host=host,
             unix_socket="/run/mysql/mysql.sock",
             autocommit=True,
         )
     else:
         db = pymysql.connect(
             db=db_name,
-            host="localhost",
+            host=host,
             port=port,
             user=username,
             passwd=passwd,
@@ -45,10 +45,10 @@ def connect_db(host="localhost", username="apache", passwd="", port=40000):
     return db.cursor(pymysql.cursors.DictCursor)
 
 
-docker_db = os.environ.get("USE_DOCKER_DB")
+database_url = os.environ.get("DATABASE_URL")
 
-if docker_db:
-    db = connect_db(username="root", passwd="secret", port=3306)
+if database_url:
+    db = connect_db(host=database_url, username="root", passwd="secret", port=3306)
 else:
     db = connect_db()
 

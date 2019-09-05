@@ -16,8 +16,6 @@ from ariadne import (
 from ariadne.asgi import GraphQL
 import asyncio
 import requests
-import os
-import json
 
 from . import db
 
