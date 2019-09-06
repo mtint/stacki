@@ -14,12 +14,13 @@
 import stack.commands
 from stack.util import flatten
 
-class command(stack.commands.list.command,
-	      stack.commands.PalletArgumentProcessor):
-	pass
+
+class command(stack.commands.list.command, stack.commands.PalletArgumentProcessor):
+    pass
+
 
 class Command(command):
-	"""
+    """
 	List the status of available pallets.
 
 	<arg optional='1' type='string' name='pallet' repeat='1'>
@@ -71,31 +72,36 @@ class Command(command):
 	<related>create pallet</related>
 	"""
 
-	def run(self, params, args):
-		self.beginOutput()
+    def run(self, params, args):
+        self.beginOutput()
 
-		expanded, = self.fillParams([ ('expanded', 'false') ])
-		expanded = self.str2bool(expanded)
+        expanded, = self.fillParams([("expanded", "false")])
+        expanded = self.str2bool(expanded)
 
-		for pallet in self.getPallets(args, params):
+        for pallet in self.getPallets(args, params):
 
-			boxes = ' '.join(flatten(self.db.select("""
+            boxes = " ".join(
+                flatten(
+                    self.db.select(
+                        """
 					boxes.name from stacks, boxes
 					where stacks.roll=%s and stacks.box=boxes.id
-					""", (pallet.id,))))
-			
-			# Constuct our data to output
-			output = [
-				pallet.version, pallet.rel, pallet.arch, pallet.os, boxes
-			]
+					""",
+                        (pallet.id,),
+                    )
+                )
+            )
 
-			if expanded:
-				output.append(pallet.url)
+            # Constuct our data to output
+            output = [pallet.version, pallet.rel, pallet.arch, pallet.os, boxes]
 
-			self.addOutput(pallet.name, output)
+            if expanded:
+                output.append(pallet.url)
 
-		header = ['name', 'version', 'release', 'arch', 'os', 'boxes']
-		if expanded:
-			header.append('url')
+            self.addOutput(pallet.name, output)
 
-		self.endOutput(header, trimOwner=False)
+        header = ["name", "version", "release", "arch", "os", "boxes"]
+        if expanded:
+            header.append("url")
+
+        self.endOutput(header, trimOwner=False)

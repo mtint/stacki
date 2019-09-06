@@ -16,11 +16,11 @@ from stack.exception import CommandError
 
 
 class command(stack.commands.create.command):
-	MustBeRoot = 0
+    MustBeRoot = 0
 
 
 class Command(command):
-	"""
+    """
 	Create a RSA private/public key pair. These keys can be used to
 	control the power for host and to open a console to VM. The private
 	key will be stored in the specified by the 'key' parameter and the
@@ -36,32 +36,28 @@ class Command(command):
 	</param>
 	"""
 
-	def run(self, params, args):
-		(key, p) = self.fillParams([
-			('key', None, True),
-			('passphrase', 'yes')
-			])
+    def run(self, params, args):
+        (key, p) = self.fillParams([("key", None, True), ("passphrase", "yes")])
 
-		passphrase = self.str2bool(p)
-		
-		if os.path.exists(key):
-			raise CommandError(self, "key file '%s' already exists" % key)
+        passphrase = self.str2bool(p)
 
-		#
-		# generate the private key
-		#
-		cmd = 'openssl genrsa '
-		if passphrase:
-			cmd += '-des3 '
-		cmd += '-out %s 1024' % key
-		status = os.system(cmd)
-		if status == 0:
-			os.chmod(key, 0o400)
+        if os.path.exists(key):
+            raise CommandError(self, "key file '%s' already exists" % key)
 
-			#
-			# output the public key
-			#
-			os.system('openssl rsa -in %s -pubout' % key)
-		else:
-			os.remove(key)
+        #
+        # generate the private key
+        #
+        cmd = "openssl genrsa "
+        if passphrase:
+            cmd += "-des3 "
+        cmd += "-out %s 1024" % key
+        status = os.system(cmd)
+        if status == 0:
+            os.chmod(key, 0o400)
 
+            #
+            # output the public key
+            #
+            os.system("openssl rsa -in %s -pubout" % key)
+        else:
+            os.remove(key)

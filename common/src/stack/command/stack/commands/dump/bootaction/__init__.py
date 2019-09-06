@@ -11,19 +11,21 @@ import json
 
 
 class Command(stack.commands.dump.command):
+    def run(self, params, args):
+        dump = []
 
-	def run(self, params, args):
-		dump = []
+        for row in self.call("list.bootaction"):
+            dump.append(
+                OrderedDict(
+                    name=row["bootaction"],
+                    type=row["type"],
+                    os=row["os"],
+                    kernel=row["kernel"],
+                    ramdisk=row["ramdisk"],
+                    args=row["args"],
+                )
+            )
 
-		for row in self.call('list.bootaction'):
-			dump.append(OrderedDict(
-				name    = row['bootaction'],
-				type    = row['type'],
-				os      = row['os'],
-				kernel  = row['kernel'],
-				ramdisk = row['ramdisk'],
-				args    = row['args']))
-
-		self.addText(json.dumps(OrderedDict(version    = stack.version,
-						    bootaction = dump), indent=8))
-
+        self.addText(
+            json.dumps(OrderedDict(version=stack.version, bootaction=dump), indent=8)
+        )

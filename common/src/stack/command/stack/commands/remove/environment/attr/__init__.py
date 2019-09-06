@@ -8,7 +8,7 @@ import stack.commands
 
 
 class Command(stack.commands.remove.environment.command):
-	"""
+    """
 	Remove an attribute for an Environment.
 
 	<arg type='string' name='environment' repeat='1' optional='1'>
@@ -24,6 +24,6 @@ class Command(stack.commands.remove.environment.command):
 	</example>
 	"""
 
-	def run(self, params, args):
-		self.command('set.attr', self._argv + [ 'scope=environment', 'value=' ])
-		return self.rc
+    def run(self, params, args):
+        self.command("set.attr", self._argv + ["scope=environment", "value="])
+        return self.rc

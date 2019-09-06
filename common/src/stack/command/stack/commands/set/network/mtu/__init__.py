@@ -8,7 +8,7 @@ import stack.commands.set.network
 
 
 class Command(stack.commands.set.network.command):
-	"""
+    """
 	Sets the MTU for one or more networks.
 
 	<arg type='string' name='network' optional='0' repeat='1'>
@@ -24,12 +24,9 @@ class Command(stack.commands.set.network.command):
 	</example>
 	"""
 
-	def run(self, params, args):
+    def run(self, params, args):
 
-		(networks, mtu) = self.fillSetNetworkParams(args, 'mtu')
+        (networks, mtu) = self.fillSetNetworkParams(args, "mtu")
 
-		for network in networks:
-			self.db.execute(
-				'update subnets set mtu=%s where name=%s',
-				(mtu, network)
-			)
+        for network in networks:
+            self.db.execute("update subnets set mtu=%s where name=%s", (mtu, network))

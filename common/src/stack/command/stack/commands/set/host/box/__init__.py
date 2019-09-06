@@ -7,9 +7,8 @@
 import stack.commands
 
 
-class Command(stack.commands.set.host.command,
-	      stack.commands.BoxArgumentProcessor):
-	"""
+class Command(stack.commands.set.host.command, stack.commands.BoxArgumentProcessor):
+    """
 	Sets the box for a list of hosts.
 
 	<arg type='string' name='host' repeat='1'>
@@ -25,19 +24,20 @@ class Command(stack.commands.set.host.command,
 	</example>
 	"""
 
-	def run(self, params, args):
-		hosts = self.getHosts(args)
+    def run(self, params, args):
+        hosts = self.getHosts(args)
 
-		box, = self.fillParams([
-			('box', None, True)
-		])
+        box, = self.fillParams([("box", None, True)])
 
-		# Check to make sure this is a valid box name
-		self.getBoxNames([ box ])
+        # Check to make sure this is a valid box name
+        self.getBoxNames([box])
 
-		for host in hosts:
-			self.db.execute("""
+        for host in hosts:
+            self.db.execute(
+                """
 				update nodes set box=(
 					select id from boxes where name=%s
 				) where name=%s
-			""", (box, host))
+			""",
+                (box, host),
+            )

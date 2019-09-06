@@ -15,9 +15,12 @@
 import stack.commands
 
 
-class Command(stack.commands.HostArgumentProcessor,
-	stack.commands.BoxArgumentProcessor, stack.commands.report.command):
-	"""
+class Command(
+    stack.commands.HostArgumentProcessor,
+    stack.commands.BoxArgumentProcessor,
+    stack.commands.report.command,
+):
+    """
 	Create a report that describes the repository configuration file
 	that should be put on hosts.
 
@@ -30,17 +33,15 @@ class Command(stack.commands.HostArgumentProcessor,
 	</example>
 	"""
 
-	def run(self, params, args):
+    def run(self, params, args):
 
-		self.beginOutput()
+        self.beginOutput()
 
-		hosts = self.getHostnames(args)
-		for host in hosts:
-			osname = self.db.getHostOS(host)
-			server = self.getHostAttr(host, 'Kickstart_PrivateAddress')
-			
-			self.runImplementation(osname, (host, server))
+        hosts = self.getHostnames(args)
+        for host in hosts:
+            osname = self.db.getHostOS(host)
+            server = self.getHostAttr(host, "Kickstart_PrivateAddress")
 
-		self.endOutput(padChar='', trimOwner=True)
+            self.runImplementation(osname, (host, server))
 
-
+        self.endOutput(padChar="", trimOwner=True)

@@ -12,8 +12,8 @@
 
 import os
 
-__path__.append(os.path.join(os.path.split(__file__)[0], '..', '..', 'pylib', 'stack'))
-__path__.append('/opt/stack/lib/python3.7/site-packages/stack')
+__path__.append(os.path.join(os.path.split(__file__)[0], "..", "..", "pylib", "stack"))
+__path__.append("/opt/stack/lib/python3.7/site-packages/stack")
 
-version = 'no-version'
-release = 'no-release'
+version = "no-version"
+release = "no-release"

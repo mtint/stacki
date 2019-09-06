@@ -17,53 +17,54 @@ import time
 import os
 
 max_threading = 512
-timeout	= 30
+timeout = 30
 
 
-class command(stack.commands.sync.command,
-	stack.commands.HostArgumentProcessor):
-	pass
+class command(stack.commands.sync.command, stack.commands.HostArgumentProcessor):
+    pass
+
 
 class Parallel(threading.Thread):
-	def __init__(self, cmd, out=None, stdin=None):
-		self.cmd = cmd
-		self.stdin = stdin
-		if not out:
-			self.out = {"output": "", "error": "", "rc": 0}
-		else:
-			self.out = out
-		while threading.activeCount() > max_threading:
-			time.sleep(0.001)
-		threading.Thread.__init__(self)
+    def __init__(self, cmd, out=None, stdin=None):
+        self.cmd = cmd
+        self.stdin = stdin
+        if not out:
+            self.out = {"output": "", "error": "", "rc": 0}
+        else:
+            self.out = out
+        while threading.activeCount() > max_threading:
+            time.sleep(0.001)
+        threading.Thread.__init__(self)
 
-	def run(self):
-		if not self.stdin:
-			p = subprocess.Popen(self.cmd,
-				stdout=subprocess.PIPE,
-				stderr=subprocess.STDOUT,
-				shell=True)
-			(o, e) = p.communicate()
-		else:
-			p = subprocess.Popen(self.cmd,
-				stdin=subprocess.PIPE,
-				stdout=subprocess.PIPE,
-				stderr=subprocess.STDOUT,
-				shell=True)
-			(o, e) = p.communicate(self.stdin.encode())
+    def run(self):
+        if not self.stdin:
+            p = subprocess.Popen(
+                self.cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True
+            )
+            (o, e) = p.communicate()
+        else:
+            p = subprocess.Popen(
+                self.cmd,
+                stdin=subprocess.PIPE,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                shell=True,
+            )
+            (o, e) = p.communicate(self.stdin.encode())
 
-		rc = p.wait()
-		if o:
-			self.out['output'] = o.decode()
-		if e:
-			self.out['error'] = e.decode()
-		self.out['rc'] = rc
+        rc = p.wait()
+        if o:
+            self.out["output"] = o.decode()
+        if e:
+            self.out["error"] = e.decode()
+        self.out["rc"] = rc
 
 
 class Command(command):
-	"""
+    """
 	Writes the /etc/hosts file based on the configuration database
 	"""
 
-	def run(self, params, args):
-		self.notify('Sync Host')
-		self.report('report.host')
+    def run(self, params, args):
+        self.notify("Sync Host")
+        self.report("report.host")

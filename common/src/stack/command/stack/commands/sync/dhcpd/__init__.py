@@ -12,7 +12,7 @@ import subprocess
 
 
 class Command(stack.commands.sync.command):
-	"""
+    """
 	Rebuild the DHCPD configuration files on the frontend and restart the
 	DHCPD service
 
@@ -23,11 +23,14 @@ t the
 	</example>
 	"""
 
-	def run(self, params, args):
+    def run(self, params, args):
 
-		self.notify('Sync DHCP')
+        self.notify("Sync DHCP")
 
-		self.report('report.dhcpd')
+        self.report("report.dhcpd")
 
-		subprocess.call(['/sbin/service', 'dhcpd', 'restart'],
-				stdout=open('/dev/null'), stderr=open('/dev/null'))
+        subprocess.call(
+            ["/sbin/service", "dhcpd", "restart"],
+            stdout=open("/dev/null"),
+            stderr=open("/dev/null"),
+        )

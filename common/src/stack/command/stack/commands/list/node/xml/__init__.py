@@ -11,7 +11,6 @@
 # @rocks@
 
 
-
 import os
 import subprocess
 import stack
@@ -22,9 +21,8 @@ from xml.sax import make_parser
 from xml.sax import saxutils
 
 
-class Command(stack.commands.list.command, 
-	      stack.commands.BoxArgumentProcessor):
-	"""
+class Command(stack.commands.list.command, stack.commands.BoxArgumentProcessor):
+    """
 	Lists the XML configuration information for a host. The graph
 	traversal for the XML output is rooted at the XML node file
 	specified by the 'node' argument. This command executes the first
@@ -62,291 +60,299 @@ class Command(stack.commands.list.command,
 	</example>
 	"""
 
-	def run(self, params, args):
-		(attributes, pallets, evalp, missing, generator, basedir) = \
-			self.fillParams([
-				('attrs', ),
-				('pallet', ),
-				('eval', 'yes'),
-				('missing-check', 'no'),
-				('gen', 'kgen'),
-				('basedir', None),
-				])
-			
-		if pallets:
-			pallets = pallets.split(',')
+    def run(self, params, args):
+        (attributes, pallets, evalp, missing, generator, basedir) = self.fillParams(
+            [
+                ("attrs",),
+                ("pallet",),
+                ("eval", "yes"),
+                ("missing-check", "no"),
+                ("gen", "kgen"),
+                ("basedir", None),
+            ]
+        )
 
-		if attributes:
-			try:
-				attrs = eval(attributes)
-			except:
-				attrs = {}
-				if os.path.exists(attributes):
-					file = open(attributes, 'r')
-					for line in file.readlines():
-						l = line.split(':', 1)
-						if len(l) == 2:
-							#
-							# key/value pairs
-							#
-							attrs[l[0].strip()] = \
-								l[1].strip()
-					file.close()
-		else:
-			attrs = {}
+        if pallets:
+            pallets = pallets.split(",")
 
-		#
-		# if there is an empty key in the attrs dictionary, remove
-		# it, otherwise it will cause an exception below.
-		#
-		if '' in attrs.keys():
-			del attrs['']
+        if attributes:
+            try:
+                attrs = eval(attributes)
+            except:
+                attrs = {}
+                if os.path.exists(attributes):
+                    file = open(attributes, "r")
+                    for line in file.readlines():
+                        l = line.split(":", 1)
+                        if len(l) == 2:
+                            #
+                            # key/value pairs
+                            #
+                            attrs[l[0].strip()] = l[1].strip()
+                    file.close()
+        else:
+            attrs = {}
 
-		#
-		# make sure all the attributes are XML escaped including
-		# the extra characters that are invalid in an entity
-		# value.
-		#
-		for key in attrs.keys():
-			try:
-				a = saxutils.escape(attrs[key],
-						    {'"': '&#x22;',
-						     '%': '&#x25;', 
-						     '^': '&#x5E;'})
-			except:
-				a = attrs[key]
+        #
+        # if there is an empty key in the attrs dictionary, remove
+        # it, otherwise it will cause an exception below.
+        #
+        if "" in attrs.keys():
+            del attrs[""]
 
-			attrs[key] = a
+        #
+        # make sure all the attributes are XML escaped including
+        # the extra characters that are invalid in an entity
+        # value.
+        #
+        for key in attrs.keys():
+            try:
+                a = saxutils.escape(
+                    attrs[key], {'"': "&#x22;", "%": "&#x25;", "^": "&#x5E;"}
+                )
+            except:
+                a = attrs[key]
 
-		if 'os' not in attrs:
-			attrs['os'] = self.os
+            attrs[key] = a
 
-		if 'arch' not in attrs:
-			attrs['arch'] = self.arch
-			
-		if 'hostname' not in attrs:
-			attrs['hostname'] = self.db.getHostname()
+        if "os" not in attrs:
+            attrs["os"] = self.os
 
-		if 'graph' not in attrs:
-			attrs['graph'] = 'default'
-			
-		if 'box' not in attrs:
-			attrs['box'] = 'default'
+        if "arch" not in attrs:
+            attrs["arch"] = self.arch
 
-		if len(args) != 1:
-			raise ArgRequired(self, 'node')
-		root = args[0]
+        if "hostname" not in attrs:
+            attrs["hostname"] = self.db.getHostname()
 
-		doEval = self.str2bool(evalp)
-		allowMissing = self.str2bool(missing)
+        if "graph" not in attrs:
+            attrs["graph"] = "default"
 
-		# yes, this was already imported above.  Take it out and it crashes looking up .version.
-		# First added in commit 38623be.  No one knows why it's needed.
-		import stack
+        if "box" not in attrs:
+            attrs["box"] = "default"
 
-		# Add more values to the attributes
-		attrs['version'] = stack.version
-		attrs['release'] = stack.release
-		attrs['root']	 = root
-		
-		# Parse the XML graph files in the chosen directory
+        if len(args) != 1:
+            raise ArgRequired(self, "node")
+        root = args[0]
 
-		#	
-		# get the pallets that are in the box associated with the host
-		#	
-		items = []
-		try:
-			for pallet in self.getBoxPallets(attrs['box']):
-				items.append(os.path.join('/export', 'stack', 'pallets',
-					pallet.name, pallet.version, pallet.rel, pallet.os, pallet.arch))
-		except:
-			#
-			# there is no output from 'getBoxPallets()'.
-			# let's assume that the database is down
-			# (e.g., we are installing and configuring
-			# the frontend's database) and we'll get
-			# pallet info from '/tmp/rolls.xml' or
-			# '/tmp/pallets.xml'
-			#
+        doEval = self.str2bool(evalp)
+        allowMissing = self.str2bool(missing)
 
-			import stack.roll
+        # yes, this was already imported above.  Take it out and it crashes looking up .version.
+        # First added in commit 38623be.  No one knows why it's needed.
+        import stack
 
-			g = stack.roll.Generator()
+        # Add more values to the attributes
+        attrs["version"] = stack.version
+        attrs["release"] = stack.release
+        attrs["root"] = root
 
-			if os.path.exists('/tmp/rolls.xml'):
-				g.parse('/tmp/rolls.xml')
-			elif os.path.exists('/tmp/pallets.xml'):
-				g.parse('/tmp/pallets.xml')
+        # Parse the XML graph files in the chosen directory
 
-			for pallet in g.rolls:
-				(pname, pver, prel, parch, purl, pdiskid) \
-					= pallet
-				items.append(os.path.join('/export',
-					'stack', 'pallets', pname, pver, prel,
-					self.os, parch))
+        #
+        # get the pallets that are in the box associated with the host
+        #
+        items = []
+        try:
+            for pallet in self.getBoxPallets(attrs["box"]):
+                items.append(
+                    os.path.join(
+                        "/export",
+                        "stack",
+                        "pallets",
+                        pallet.name,
+                        pallet.version,
+                        pallet.rel,
+                        pallet.os,
+                        pallet.arch,
+                    )
+                )
+        except:
+            #
+            # there is no output from 'getBoxPallets()'.
+            # let's assume that the database is down
+            # (e.g., we are installing and configuring
+            # the frontend's database) and we'll get
+            # pallet info from '/tmp/rolls.xml' or
+            # '/tmp/pallets.xml'
+            #
 
-		#
-		# get the carts associated with the box
-		#
-		output = self.call('list.cart')
-		devnull = open('/dev/null', 'w')
-		for o in output:
-			if attrs['box'] in o['boxes'].split():
-				items.append(os.path.join('/export', 'stack',
-					'carts', o['name']))
-	
-				#
-				# if a cart has changed since the last time we
-				# built a kickstart file, we will need to
-				# 'compile' it which may take a long time
-				# (because we create a repo in the cart and
-				# if there are a lot of RPMS the checksum will
-				# take a long time) -- so, let's fork off the
-				# cart compilation.
-				#
-				subprocess.Popen([ '/opt/stack/bin/stack',
-					'compile', 'cart', o['name'] ],
-					stdout=devnull, stderr=devnull)
+            import stack.roll
 
-		if basedir:
-			if os.path.exists(basedir) and os.path.isdir(basedir):
-				items = [os.path.realpath(basedir)]
+            g = stack.roll.Generator()
 
-		handler = stack.profile.GraphHandler(attrs, directories=items)
+            if os.path.exists("/tmp/rolls.xml"):
+                g.parse("/tmp/rolls.xml")
+            elif os.path.exists("/tmp/pallets.xml"):
+                g.parse("/tmp/pallets.xml")
 
-		for item in items:
-			graph = os.path.join(item, 'graph')
-			if not os.path.exists(graph):
-				continue
+            for pallet in g.rolls:
+                (pname, pver, prel, parch, purl, pdiskid) = pallet
+                items.append(
+                    os.path.join(
+                        "/export", "stack", "pallets", pname, pver, prel, self.os, parch
+                    )
+                )
 
-			for file in os.listdir(graph):
-				base, ext = os.path.splitext(file)
-				if ext == '.xml':
-					parser = make_parser(["stack.expatreader"])
-					parser.setContentHandler(handler)
-					parser.feed(handler.getXMLHeader())
-					linenumber = 0
+        #
+        # get the carts associated with the box
+        #
+        output = self.call("list.cart")
+        devnull = open("/dev/null", "w")
+        for o in output:
+            if attrs["box"] in o["boxes"].split():
+                items.append(os.path.join("/export", "stack", "carts", o["name"]))
 
-					with open(os.path.join(graph, file), 'r') as xml:
-						for line in xml.readlines():
-							linenumber = linenumber + 1
-							if line.find('<?xml') != -1:
-								continue
-							try:
-								parser.feed(line)
-							except Exception as e:
-								print('XML parse error in graph file - %s in file %s on line %d\n' % (e.args[-1], xml.name, linenumber))
-								raise
+                #
+                # if a cart has changed since the last time we
+                # built a kickstart file, we will need to
+                # 'compile' it which may take a long time
+                # (because we create a repo in the cart and
+                # if there are a lot of RPMS the checksum will
+                # take a long time) -- so, let's fork off the
+                # cart compilation.
+                #
+                subprocess.Popen(
+                    ["/opt/stack/bin/stack", "compile", "cart", o["name"]],
+                    stdout=devnull,
+                    stderr=devnull,
+                )
 
+        if basedir:
+            if os.path.exists(basedir) and os.path.isdir(basedir):
+                items = [os.path.realpath(basedir)]
 
-		graph = handler.getMainGraph()
-		if graph.hasNode(root):
-			root = graph.getNode(root)
-		else:
-			raise CommandError(self, 'node "%s" not in graph' % root)
+        handler = stack.profile.GraphHandler(attrs, directories=items)
 
-		nodes = stack.profile.FrameworkIterator(graph).run(root)
-		deps  = stack.profile.OrderIterator(handler.getOrderGraph()).run()
+        for item in items:
+            graph = os.path.join(item, "graph")
+            if not os.path.exists(graph):
+                continue
 
-		# Initialize the hash table for the framework
-		# nodes, and filter out everyone not for our
-		# architecture and release.
-		#
-		# Now test for arbitrary conditionals (cond tag),
-		# old arch,os test are part of this now are still supported
-		
-		nodesHash = {}
-		for node, cond in nodes:
-			nodesHash[node.name] = node
-			if not stack.cond.EvalCondExpr(cond, attrs):
-				nodesHash[node.name] = None
-			
-		# Initialize the hash table for the dependency
-		# nodes, and filter out everyone not for our
-		# generator type (e.g. 'kgen').
+            for file in os.listdir(graph):
+                base, ext = os.path.splitext(file)
+                if ext == ".xml":
+                    parser = make_parser(["stack.expatreader"])
+                    parser.setContentHandler(handler)
+                    parser.feed(handler.getXMLHeader())
+                    linenumber = 0
 
-		depsHash = {}
-		for node, gen in deps:
-			depsHash[node.name] = node
-			if gen not in [ None, generator ]:
-				depsHash[node.name] = None
+                    with open(os.path.join(graph, file), "r") as xml:
+                        for line in xml.readlines():
+                            linenumber = linenumber + 1
+                            if line.find("<?xml") != -1:
+                                continue
+                            try:
+                                parser.feed(line)
+                            except Exception as e:
+                                print(
+                                    "XML parse error in graph file - %s in file %s on line %d\n"
+                                    % (e.args[-1], xml.name, linenumber)
+                                )
+                                raise
 
-		for dep, gen in deps:
-			if not nodesHash.get(dep.name):
-				depsHash[dep.name] = None
+        graph = handler.getMainGraph()
+        if graph.hasNode(root):
+            root = graph.getNode(root)
+        else:
+            raise CommandError(self, 'node "%s" not in graph' % root)
 
-		for node, cond in nodes:
-			if node.name in depsHash:
-				nodesHash[node.name] = None
+        nodes = stack.profile.FrameworkIterator(graph).run(root)
+        deps = stack.profile.OrderIterator(handler.getOrderGraph()).run()
 
-		list = []
-		for dep, gen in deps:
-			if dep.name == 'TAIL':
-				for node, cond in nodes:
-					list.append(nodesHash[node.
-							      name])
-			else:
-				list.append(depsHash[dep.name])
+        # Initialize the hash table for the framework
+        # nodes, and filter out everyone not for our
+        # architecture and release.
+        #
+        # Now test for arbitrary conditionals (cond tag),
+        # old arch,os test are part of this now are still supported
 
-		# if there was not a 'TAIL' tag, then add the
-		# the nodes to the list here
+        nodesHash = {}
+        for node, cond in nodes:
+            nodesHash[node.name] = node
+            if not stack.cond.EvalCondExpr(cond, attrs):
+                nodesHash[node.name] = None
 
-		for node, cond in nodes:
-			if nodesHash[node.name] not in list:
-				list.append(nodesHash[node.name])
+        # Initialize the hash table for the dependency
+        # nodes, and filter out everyone not for our
+        # generator type (e.g. 'kgen').
 
-		# Iterate over the nodes and parse everyone we need
-		# to parse.
+        depsHash = {}
+        for node, gen in deps:
+            depsHash[node.name] = node
+            if gen not in [None, generator]:
+                depsHash[node.name] = None
 
-		parsed     = []
-		kstext     = ''
-		for node in list:
-			if not node:
-				continue
+        for dep, gen in deps:
+            if not nodesHash.get(dep.name):
+                depsHash[dep.name] = None
 
-			# When building pallets allowMissing=1 and
-			# doEval=0.  This is setup by rollRPMS.py
+        for node, cond in nodes:
+            if node.name in depsHash:
+                nodesHash[node.name] = None
 
-			if allowMissing:
-				try:
-					handler.parseNode(node, doEval, self)
-				except stack.util.KickstartNodeError:
-					pass
-			else:
-				handler.parseNode(node, doEval, self)
-				parsed.append(node)
-				kstext += node.getKSText()
+        list = []
+        for dep, gen in deps:
+            if dep.name == "TAIL":
+                for node, cond in nodes:
+                    list.append(nodesHash[node.name])
+            else:
+                list.append(depsHash[dep.name])
 
+        # if there was not a 'TAIL' tag, then add the
+        # the nodes to the list here
 
-		# Now print everyone out with the header kstext from
-		# the previously parsed nodes
+        for node, cond in nodes:
+            if nodesHash[node.name] not in list:
+                list.append(nodesHash[node.name])
 
-		self.addText('<stack:profile stack:os="%s"' % attrs['os'])
-		self.addText(' %s' % handler.nsAttrs())
-		self.addText(' stack:attrs="%s">\n' % saxutils.escape('%s' % attrs))
+        # Iterate over the nodes and parse everyone we need
+        # to parse.
 
-		self.runPlugins(attrs)
+        parsed = []
+        kstext = ""
+        for node in list:
+            if not node:
+                continue
 
-		for node in parsed:
-			# If we are only expanding a pallet subgraph
-			# then do not ouput the XML for other nodes
+            # When building pallets allowMissing=1 and
+            # doEval=0.  This is setup by rollRPMS.py
 
-			pallet   = None
-			try:
-				filename = node.getFilename()
-				pallet   = filename.split('pallets')[1].split(os.sep)[1]
-			except:
-				pass
+            if allowMissing:
+                try:
+                    handler.parseNode(node, doEval, self)
+                except stack.util.KickstartNodeError:
+                    pass
+            else:
+                handler.parseNode(node, doEval, self)
+                parsed.append(node)
+                kstext += node.getKSText()
 
-			if pallets and pallet not in pallets:
-				continue
-				
-			try:
-				self.addText('%s\n' % node.getXML())
-			except Exception as msg:
-				raise stack.util.KickstartNodeError("in %s node: %s" % (node, msg))
+        # Now print everyone out with the header kstext from
+        # the previously parsed nodes
 
-		self.addText('</stack:profile>\n')
-		
-		
+        self.addText('<stack:profile stack:os="%s"' % attrs["os"])
+        self.addText(" %s" % handler.nsAttrs())
+        self.addText(' stack:attrs="%s">\n' % saxutils.escape("%s" % attrs))
 
+        self.runPlugins(attrs)
+
+        for node in parsed:
+            # If we are only expanding a pallet subgraph
+            # then do not ouput the XML for other nodes
+
+            pallet = None
+            try:
+                filename = node.getFilename()
+                pallet = filename.split("pallets")[1].split(os.sep)[1]
+            except:
+                pass
+
+            if pallets and pallet not in pallets:
+                continue
+
+            try:
+                self.addText("%s\n" % node.getXML())
+            except Exception as msg:
+                raise stack.util.KickstartNodeError("in %s node: %s" % (node, msg))
+
+        self.addText("</stack:profile>\n")

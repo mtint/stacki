@@ -15,7 +15,7 @@ import stack.commands
 
 
 class Command(stack.commands.report.command):
-	"""
+    """
 	Reports hostname of the database.
 
 	<example cmd='report dbhost'>
@@ -23,22 +23,23 @@ class Command(stack.commands.report.command):
 	</example>
 	"""
 
-	def run(self, param, args):
+    def run(self, param, args):
 
-		# If we already know the stack.DatabaseHost just report
-		# that.  Otherwise we assume we are on the database
-		# host and we report the name of the private interface.
+        # If we already know the stack.DatabaseHost just report
+        # that.  Otherwise we assume we are on the database
+        # host and we report the name of the private interface.
 
-		try:
-			host = stack.DatabaseHost
-		except:
-			host = self.db.getHostname()
+        try:
+            host = stack.DatabaseHost
+        except:
+            host = self.db.getHostname()
 
-		self.beginOutput()
-		self.addOutput('', '<stack:file stack:name="%s/__init__.py" stack:mode="append">'
-			% stack.__path__[0])
-		self.addOutput('', 'DatabaseHost = "%s"' % host)
-		self.addOutput('', '</stack:file>')
-		self.endOutput(padChar='')
-
-
+        self.beginOutput()
+        self.addOutput(
+            "",
+            '<stack:file stack:name="%s/__init__.py" stack:mode="append">'
+            % stack.__path__[0],
+        )
+        self.addOutput("", 'DatabaseHost = "%s"' % host)
+        self.addOutput("", "</stack:file>")
+        self.endOutput(padChar="")

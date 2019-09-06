@@ -16,16 +16,17 @@ import re
 from collections import namedtuple
 from stack.argument_processors.firmware import FirmwareArgumentProcessor
 
+
 class command(
-	stack.commands.HostArgumentProcessor,
-	stack.commands.list.command,
-	FirmwareArgumentProcessor,
+    stack.commands.HostArgumentProcessor,
+    stack.commands.list.command,
+    FirmwareArgumentProcessor,
 ):
-	pass
+    pass
 
 
 class Command(command):
-	"""
+    """
 	List the hosts, and their corresponding available and installed firmwares.
 
 	<arg optional='1' type='string' name='host' repeat='1'>
@@ -43,28 +44,25 @@ class Command(command):
 
 	"""
 
-	def run(self, params, args):
-		order, expanded, hashit = self.fillParams(
-			names = [
-				('order', 'asc'),
-				('expanded', False),
-				('hash', False)
-			],
-			params = params
-		)
+    def run(self, params, args):
+        order, expanded, hashit = self.fillParams(
+            names=[("order", "asc"), ("expanded", False), ("hash", False)],
+            params=params,
+        )
 
-		hosts = self.getHostnames(names = args, order = order)
-		expanded = self.str2bool(expanded)
-		hashit = self.str2bool(hashit)
+        hosts = self.getHostnames(names=args, order=order)
+        expanded = self.str2bool(expanded)
+        hashit = self.str2bool(hashit)
 
-		header = ["host", "make", "model",]
-		# build a dictionary keyed by (host + make + model) so that the plugins and implementations
-		# can return the data mapped appropriately. We do this by getting all the firmware mappings
-		# and looking at the make and model of firmwares mapped to hosts.
-		CommonKey = namedtuple("CommonKey", ("host", "make", "model"))
-		values = {
-			CommonKey(*row): [] for row in self.db.select(
-				"""
+        header = ["host", "make", "model"]
+        # build a dictionary keyed by (host + make + model) so that the plugins and implementations
+        # can return the data mapped appropriately. We do this by getting all the firmware mappings
+        # and looking at the make and model of firmwares mapped to hosts.
+        CommonKey = namedtuple("CommonKey", ("host", "make", "model"))
+        values = {
+            CommonKey(*row): []
+            for row in self.db.select(
+                """
 				nodes.Name, firmware_make.name, firmware_model.name
 				FROM firmware_mapping
 					INNER JOIN nodes
@@ -77,31 +75,34 @@ class Command(command):
 						ON firmware_model.make_id = firmware_make.id
 				WHERE nodes.Name IN %s
 				""",
-				(hosts,)
-			)
-		}
+                (hosts,),
+            )
+        }
 
-		# loop through all the plugin results and extend header and values as necessary.
-		CommonResult = namedtuple("CommonResult", ("header", "values"))
-		for provides, result in self.runPlugins((CommonKey, CommonResult, values.keys(), expanded, hashit)):
-			header.extend(result.header)
-			for host_make_model, items in result.values.items():
-				values[host_make_model].extend(items)
+        # loop through all the plugin results and extend header and values as necessary.
+        CommonResult = namedtuple("CommonResult", ("header", "values"))
+        for provides, result in self.runPlugins(
+            (CommonKey, CommonResult, values.keys(), expanded, hashit)
+        ):
+            header.extend(result.header)
+            for host_make_model, items in result.values.items():
+                values[host_make_model].extend(items)
 
-		# add empty entries for hosts with no firmware mappings.
-		values.update(
-			{
-				# pad out with None for each extra column header added by the plugins
-				CommonKey(host, None, None): [None for i in range(len(header) - 3)] for host in hosts
-				if host not in [host_make_model.host for host_make_model in values]
-			}
-		)
+        # add empty entries for hosts with no firmware mappings.
+        values.update(
+            {
+                # pad out with None for each extra column header added by the plugins
+                CommonKey(host, None, None): [None for i in range(len(header) - 3)]
+                for host in hosts
+                if host not in [host_make_model.host for host_make_model in values]
+            }
+        )
 
-		# output the results
-		self.beginOutput()
-		for host_make_model in values:
-			self.addOutput(
-				host_make_model.host,
-				[host_make_model.make, host_make_model.model, *values[host_make_model]]
-			)
-		self.endOutput(header = header)
+        # output the results
+        self.beginOutput()
+        for host_make_model in values:
+            self.addOutput(
+                host_make_model.host,
+                [host_make_model.make, host_make_model.model, *values[host_make_model]],
+            )
+        self.endOutput(header=header)

@@ -24,10 +24,13 @@ from stack.exception import *
 # 5. If certain nodes are set as parent servers, they can form a time island, from which
 #    all other servers can sync
 
-class Command(stack.commands.HostArgumentProcessor,
-	stack.commands.NetworkArgumentProcessor,
-	stack.commands.report.command):
-	"""
+
+class Command(
+    stack.commands.HostArgumentProcessor,
+    stack.commands.NetworkArgumentProcessor,
+    stack.commands.report.command,
+):
+    """
 	Create a time configuration report (NTP or chrony).
 
 	Relevant Attributes:
@@ -53,125 +56,141 @@ class Command(stack.commands.HostArgumentProcessor,
 	</example>
 	"""
 
-	def getNTPPeers(self, host):
-		
-		peerlist = []
-		parents = [ h for h in self.attrs if ( self.attrs[h].get('time.orphantype') == 'parent' and h != host and h != self.frontend ) ]
-		if parents:
-			op = self.call('list.host.interface', parents + ['expanded=true'])
-			networks = self.getNTPNetworkNames(host)
-			n = [ intf['ip'] for intf in op if intf['network'] in networks ]
-			n.sort()
-			for i in n:
-				if i not in peerlist:
-					peerlist.append(i)
-		return peerlist
+    def getNTPPeers(self, host):
 
-	def getNTPNetworkNames(self, host):
-		networks = []
-		output = self.call('list.host.interface', [ host , 'expanded=true'])
-		for o in output:
-			if o['pxe'] == True:
-				networks.append(o['network'])
-		# If there are any extra ntp networks defined for the node,
-		# they would be specified in the attribute "ntp.networks",
-		# and is a comma separated list of "networks" that Stacki
-		# knows about.
-		stacki_networks = self.getNetworkNames()
-		ntp_net_extra = self.attrs[host].get('time.networks')
-		if ntp_net_extra:
-			for net in ntp_net_extra.split(','):
-				if net not in stacki_networks:
-					raise CommandError(self, f"Network {net} is unknown to Stacki. Fix 'time.networks' attribute for host {host}")
-				networks.append(net)
-		return networks
+        peerlist = []
+        parents = [
+            h
+            for h in self.attrs
+            if (
+                self.attrs[h].get("time.orphantype") == "parent"
+                and h != host
+                and h != self.frontend
+            )
+        ]
+        if parents:
+            op = self.call("list.host.interface", parents + ["expanded=true"])
+            networks = self.getNTPNetworkNames(host)
+            n = [intf["ip"] for intf in op if intf["network"] in networks]
+            n.sort()
+            for i in n:
+                if i not in peerlist:
+                    peerlist.append(i)
+        return peerlist
 
-	def getNTPNetworks(self, host):
-		n = self.getNTPNetworkNames(host)
-		networks = []
-		if n:
-			output = self.call('list.network', n)
-			for o in output:
-				address = o['address']
-				mask = o['mask']
-				ipnetwork = ipaddress.IPv4Network(str(address + '/' + mask))
-				networks.append(ipnetwork)
-		return networks
+    def getNTPNetworkNames(self, host):
+        networks = []
+        output = self.call("list.host.interface", [host, "expanded=true"])
+        for o in output:
+            if o["pxe"] == True:
+                networks.append(o["network"])
+        # If there are any extra ntp networks defined for the node,
+        # they would be specified in the attribute "ntp.networks",
+        # and is a comma separated list of "networks" that Stacki
+        # knows about.
+        stacki_networks = self.getNetworkNames()
+        ntp_net_extra = self.attrs[host].get("time.networks")
+        if ntp_net_extra:
+            for net in ntp_net_extra.split(","):
+                if net not in stacki_networks:
+                    raise CommandError(
+                        self,
+                        f"Network {net} is unknown to Stacki. Fix 'time.networks' attribute for host {host}",
+                    )
+                networks.append(net)
+        return networks
 
-	def getNTPServers(self, host):
-		timeservers = self.attrs[host].get('time.servers')
-		if timeservers:
-			timeservers = timeservers.split(",")
+    def getNTPNetworks(self, host):
+        n = self.getNTPNetworkNames(host)
+        networks = []
+        if n:
+            output = self.call("list.network", n)
+            for o in output:
+                address = o["address"]
+                mask = o["mask"]
+                ipnetwork = ipaddress.IPv4Network(str(address + "/" + mask))
+                networks.append(ipnetwork)
+        return networks
 
-		if self.appliance == 'frontend':
-			if not timeservers:
-				timeservers = [self.attrs[host].get('Kickstart_PublicNTPHost')]
-		else:
-			n = []
-			output = self.call('list.host.interface', [ host , 'expanded=true'])
-			for o in output:
-				if o['network'] in self.frontend_ntp_addrs:
-					n.append(self.frontend_ntp_addrs[o['network']])
-			if not timeservers:
-				timeservers = n
-			else:
-				timeservers = n + timeservers
+    def getNTPServers(self, host):
+        timeservers = self.attrs[host].get("time.servers")
+        if timeservers:
+            timeservers = timeservers.split(",")
 
-		return timeservers
+        if self.appliance == "frontend":
+            if not timeservers:
+                timeservers = [self.attrs[host].get("Kickstart_PublicNTPHost")]
+        else:
+            n = []
+            output = self.call("list.host.interface", [host, "expanded=true"])
+            for o in output:
+                if o["network"] in self.frontend_ntp_addrs:
+                    n.append(self.frontend_ntp_addrs[o["network"]])
+            if not timeservers:
+                timeservers = n
+            else:
+                timeservers = n + timeservers
 
-	def set_timezone(self, host):
-		tz = self.attrs[host].get('Kickstart_Timezone')
-		if not tz:
-			tz = 'UTC'
-		self.addOutput(host, '<stack:file stack:name="/etc/sysconfig/clock" stack:perms="0644">')
-		self.addOutput(host, stack.text.DoNotEdit())
-		self.addOutput(host, "# Hardware clock is set to UTC")
-		self.addOutput(host, 'HWCLOCK="-u"\n')
-		self.addOutput(host, "# Sync System clock to Hardware Clock")
-		self.addOutput(host, 'SYSTOHC="yes"\n')
-		self.addOutput(host, "# Timezone for the system")
-		self.addOutput(host, f'TIMEZONE="{tz}"\n')
-		self.addOutput(host, "# Default timezone")
-		self.addOutput(host, f'DEFAULT_TIMEZONE="{tz}"\n')
-		self.addOutput(host, '</stack:file>')
-		self.addOutput(host, f"zic -l {tz}")
+        return timeservers
 
-	def run(self, params, args):
-		self.beginOutput()
+    def set_timezone(self, host):
+        tz = self.attrs[host].get("Kickstart_Timezone")
+        if not tz:
+            tz = "UTC"
+        self.addOutput(
+            host, '<stack:file stack:name="/etc/sysconfig/clock" stack:perms="0644">'
+        )
+        self.addOutput(host, stack.text.DoNotEdit())
+        self.addOutput(host, "# Hardware clock is set to UTC")
+        self.addOutput(host, 'HWCLOCK="-u"\n')
+        self.addOutput(host, "# Sync System clock to Hardware Clock")
+        self.addOutput(host, 'SYSTOHC="yes"\n')
+        self.addOutput(host, "# Timezone for the system")
+        self.addOutput(host, f'TIMEZONE="{tz}"\n')
+        self.addOutput(host, "# Default timezone")
+        self.addOutput(host, f'DEFAULT_TIMEZONE="{tz}"\n')
+        self.addOutput(host, "</stack:file>")
+        self.addOutput(host, f"zic -l {tz}")
 
-		hosts = self.getHostnames(args)
+    def run(self, params, args):
+        self.beginOutput()
 
-		self.frontend = self.getHostnames(['a:frontend'])[0]
+        hosts = self.getHostnames(args)
 
-		# Get all host(s) attributes
-		self.attrs = {}
-		for row in self.call('list.host.attr'):
-			host = row['host']
-			if host not in self.attrs:
-				self.attrs[host] = {}
-			self.attrs[host][row['attr']] = row['value']
+        self.frontend = self.getHostnames(["a:frontend"])[0]
 
-		# Get all IP addresses on which the frontend serves PXE. This
-		# is a good default set of IP addresses to serve from.
-		self.frontend_ntp_addrs = {}
-		for intf in self.call("list.host.interface",["a:frontend", "expanded=true"]):
-			if intf["pxe"] == True:
-				self.frontend_ntp_addrs[intf['network']] = intf['ip']
+        # Get all host(s) attributes
+        self.attrs = {}
+        for row in self.call("list.host.attr"):
+            host = row["host"]
+            if host not in self.attrs:
+                self.attrs[host] = {}
+            self.attrs[host][row["attr"]] = row["value"]
 
-		for host in hosts:
-			protocol   = self.attrs[host].get('time.protocol')
-			self.appliance  = self.attrs[host].get('appliance')
-			self.osversion  = self.attrs[host].get('os.version')
+        # Get all IP addresses on which the frontend serves PXE. This
+        # is a good default set of IP addresses to serve from.
+        self.frontend_ntp_addrs = {}
+        for intf in self.call("list.host.interface", ["a:frontend", "expanded=true"]):
+            if intf["pxe"] == True:
+                self.frontend_ntp_addrs[intf["network"]] = intf["ip"]
 
-			if self.osversion == '11.x':
-				protocol = 'ntp'
+        for host in hosts:
+            protocol = self.attrs[host].get("time.protocol")
+            self.appliance = self.attrs[host].get("appliance")
+            self.osversion = self.attrs[host].get("os.version")
 
-			self.timeservers = self.getNTPServers(host)
-			if len(self.timeservers) == 0:
-				raise CommandError(self, f'No time servers specified for host {host}. Check network interface assignments')
+            if self.osversion == "11.x":
+                protocol = "ntp"
 
-			self.runImplementation('time_%s' % protocol, (host))
+            self.timeservers = self.getNTPServers(host)
+            if len(self.timeservers) == 0:
+                raise CommandError(
+                    self,
+                    f"No time servers specified for host {host}. Check network interface assignments",
+                )
 
-			self.set_timezone(host)
+            self.runImplementation("time_%s" % protocol, (host))
 
-		self.endOutput(padChar='', trimOwner=True)
+            self.set_timezone(host)
+
+        self.endOutput(padChar="", trimOwner=True)

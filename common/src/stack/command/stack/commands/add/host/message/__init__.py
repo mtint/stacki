@@ -10,7 +10,7 @@ import stack.commands.add.host
 
 
 class Command(stack.commands.add.host.command):
-	"""
+    """
 	Adds a message to one or most host Message Queues
 
 	<arg type='string' name='host' repeat='1'>
@@ -33,29 +33,31 @@ class Command(stack.commands.add.host.command):
 
 	"""
 
-	def run(self, params, args):
-		hosts = self.getHosts(args)
+    def run(self, params, args):
+        hosts = self.getHosts(args)
 
-		(channel, ttl, message, source) = self.fillParams([
-			('channel', 'debug', False),
-			('ttl', None, False),
-			('message', None, True),
-			('source', None, False)
-		])
+        (channel, ttl, message, source) = self.fillParams(
+            [
+                ("channel", "debug", False),
+                ("ttl", None, False),
+                ("message", None, True),
+                ("source", None, False),
+            ]
+        )
 
-		try:
-			ttl = int(ttl)
-		except TypeError:
-			pass # already set to None
-		except ValueError:
-			ttl = None
+        try:
+            ttl = int(ttl)
+        except TypeError:
+            pass  # already set to None
+        except ValueError:
+            ttl = None
 
-		for host in hosts:
-			tx  = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-			msg = stack.mq.Message(message, channel=channel, ttl=ttl, source=source)
+        for host in hosts:
+            tx = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            msg = stack.mq.Message(message, channel=channel, ttl=ttl, source=source)
 
-			if host == self.db.getHostname('localhost'):
-				host = 'localhost'
+            if host == self.db.getHostname("localhost"):
+                host = "localhost"
 
-			tx.sendto(str(msg).encode(), (host, stack.mq.ports.publish))
-			tx.close()
+            tx.sendto(str(msg).encode(), (host, stack.mq.ports.publish))
+            tx.close()

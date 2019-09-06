@@ -16,17 +16,17 @@ from stack.exception import CommandError, ParamRequired, ArgUnique, ArgRequired
 
 
 class command(
-	stack.commands.HostArgumentProcessor,
-	stack.commands.ApplianceArgumentProcessor,
-	stack.commands.BoxArgumentProcessor,
-	stack.commands.EnvironmentArgumentProcessor,
-	stack.commands.add.command
+    stack.commands.HostArgumentProcessor,
+    stack.commands.ApplianceArgumentProcessor,
+    stack.commands.BoxArgumentProcessor,
+    stack.commands.EnvironmentArgumentProcessor,
+    stack.commands.add.command,
 ):
-	pass
+    pass
 
 
 class Command(command):
-	"""
+    """
 	Add an new host to the cluster.
 
 	<arg type='string' name='host'>
@@ -72,89 +72,99 @@ class Command(command):
 
 	"""
 
-	def run(self, params, args):
-		if len(args) == 0:
-			raise ArgRequired(self, 'host')
-		
-		if len(args) != 1:
-			raise ArgUnique(self, 'host')
+    def run(self, params, args):
+        if len(args) == 0:
+            raise ArgRequired(self, "host")
 
-		host = args[0].lower()
+        if len(args) != 1:
+            raise ArgUnique(self, "host")
 
-		if self.db.count('(ID) from nodes where name=%s', (host,)) > 0:
-			raise CommandError(self, 'host "%s" already exists in the database' % host)
-	
-		# If the name is of the form appliancename-rack-rank
-		# then do the right thing and figure out the default
-		# values for appliane, rack, and rank.  If the appliance 
-		# name is not found in the database, or the rack/rank numbers
-		# are invalid do not guess any defaults.  The name is
-		# either 100% used or 0% used.
-	
-		appliances = self.getApplianceNames()
+        host = args[0].lower()
 
-		appliance = None
-		rack      = None
-		rank      = None
+        if self.db.count("(ID) from nodes where name=%s", (host,)) > 0:
+            raise CommandError(self, 'host "%s" already exists in the database' % host)
 
-		try:
-			basename, rack, rank = host.split('-')
-			if basename in appliances:
-				appliance = basename
+        # If the name is of the form appliancename-rack-rank
+        # then do the right thing and figure out the default
+        # values for appliane, rack, and rank.  If the appliance
+        # name is not found in the database, or the rack/rank numbers
+        # are invalid do not guess any defaults.  The name is
+        # either 100% used or 0% used.
 
-		except:
-			appliance = None
-			rack      = None
-			rank      = None
-				
-		# fillParams with the above default values
-		(appliance, rack, rank, box, environment,
-		 osaction, installaction) = self.fillParams([
-			 ('appliance',     appliance),
-			 ('rack',          rack),
-			 ('rank',          rank),
-			 ('box',           'default'),
-			 ('environment',   ''),
-			 ('osaction',      'default'),
-			 ('installaction', 'default')
-		])
+        appliances = self.getApplianceNames()
 
-		if not appliance:
-			raise ParamRequired(self, 'appliance')
+        appliance = None
+        rack = None
+        rank = None
 
-		if not rack:
-			raise ParamRequired(self, 'rack')
-		if not rank:
-			raise ParamRequired(self, 'rank')
+        try:
+            basename, rack, rank = host.split("-")
+            if basename in appliances:
+                appliance = basename
 
-		if appliance not in appliances:
-			raise CommandError(self, 'appliance "%s" is not in the database' % appliance)
+        except:
+            appliance = None
+            rack = None
+            rank = None
 
-		if box not in self.getBoxNames():
-			raise CommandError(self, 'box "%s" is not in the database' % box)
+        # fillParams with the above default values
+        (
+            appliance,
+            rack,
+            rank,
+            box,
+            environment,
+            osaction,
+            installaction,
+        ) = self.fillParams(
+            [
+                ("appliance", appliance),
+                ("rack", rack),
+                ("rank", rank),
+                ("box", "default"),
+                ("environment", ""),
+                ("osaction", "default"),
+                ("installaction", "default"),
+            ]
+        )
 
-		osname = None
-		for row in self.call('list.box', [ box ]):
-			osname = row['os']
+        if not appliance:
+            raise ParamRequired(self, "appliance")
 
-		# Make sure the installaction and osaction both exist
-		if not self.call('list.bootaction', [ installaction, 
-						      'type=install', 
-						      'os=%s' % osname 
-						      ]):
-			raise CommandError(self,
-					   '"%s" install boot action for "%s" is missing' % 
-					   (installaction, osname))
+        if not rack:
+            raise ParamRequired(self, "rack")
+        if not rank:
+            raise ParamRequired(self, "rank")
 
-		if not self.call('list.bootaction', [ osaction, 
-						      'type=os', 
-						      'os=%s' % osname 
-						      ]):
-			raise CommandError(self,
-					   '"%s" os boot action for "%s" is missing' % 
-					   (osaction, osname))
+        if appliance not in appliances:
+            raise CommandError(
+                self, 'appliance "%s" is not in the database' % appliance
+            )
 
-		self.db.execute("""
+        if box not in self.getBoxNames():
+            raise CommandError(self, 'box "%s" is not in the database' % box)
+
+        osname = None
+        for row in self.call("list.box", [box]):
+            osname = row["os"]
+
+        # Make sure the installaction and osaction both exist
+        if not self.call(
+            "list.bootaction", [installaction, "type=install", "os=%s" % osname]
+        ):
+            raise CommandError(
+                self,
+                '"%s" install boot action for "%s" is missing'
+                % (installaction, osname),
+            )
+
+        if not self.call("list.bootaction", [osaction, "type=os", "os=%s" % osname]):
+            raise CommandError(
+                self, '"%s" os boot action for "%s" is missing' % (osaction, osname)
+            )
+
+        self.db.execute(
+            """
 			insert into nodes
 			(name, appliance, box, rack, rank)
 			values (
@@ -163,16 +173,19 @@ class Command(command):
 			 	(select id from boxes      where name=%s),
 				%s, %s
 			) 
-			""", (host, appliance, box, rack, rank))
+			""",
+            (host, appliance, box, rack, rank),
+        )
 
-		self.command('set.host.bootaction', 
-			     [ host, 'type=install', 'sync=false', 
-			       'action=%s' % installaction ])
+        self.command(
+            "set.host.bootaction",
+            [host, "type=install", "sync=false", "action=%s" % installaction],
+        )
 
-		self.command('set.host.bootaction', 
-			     [ host, 'type=os', 'sync=false', 
-			       'action=%s' % osaction ])
+        self.command(
+            "set.host.bootaction",
+            [host, "type=os", "sync=false", "action=%s" % osaction],
+        )
 
-		if environment:
-			self.command('set.host.environment', 
-				     [ host, "environment=%s" % environment ])
+        if environment:
+            self.command("set.host.environment", [host, "environment=%s" % environment])

@@ -18,9 +18,8 @@ import stack.file
 import stack.commands
 
 
-class Command(stack.commands.PalletArgumentProcessor,
-	stack.commands.list.command):
-	"""
+class Command(stack.commands.PalletArgumentProcessor, stack.commands.list.command):
+    """
 	List the commands provided by a pallet.
 
 	<arg optional='1' type='string' name='pallet' repeat='1'>
@@ -54,48 +53,49 @@ class Command(stack.commands.PalletArgumentProcessor,
 	</example>
 	"""
 
-	def run(self, params, args):
-		# Get a listing of all the subdirectories in the
-		# stack.commands package
-		tree = stack.file.Tree(stack.commands.__path__[0])
+    def run(self, params, args):
+        # Get a listing of all the subdirectories in the
+        # stack.commands package
+        tree = stack.file.Tree(stack.commands.__path__[0])
 
-		# Filter it to remove any blanks and __pycache__
-		directories = [
-			path for path in tree.getDirs()
-			if path and '__pycache__' not in path and '.' not in path
-		]
+        # Filter it to remove any blanks and __pycache__
+        directories = [
+            path
+            for path in tree.getDirs()
+            if path and "__pycache__" not in path and "." not in path
+        ]
 
-		# Create a mapping of pallet names to Commands
-		mapping = defaultdict(list)
-		for directory in sorted(directories):
-			# Load our module
-			modpath = 'stack.commands.%s' % '.'.join(directory.split(os.sep))
+        # Create a mapping of pallet names to Commands
+        mapping = defaultdict(list)
+        for directory in sorted(directories):
+            # Load our module
+            modpath = "stack.commands.%s" % ".".join(directory.split(os.sep))
 
-			try:
-				module = importlib.import_module(modpath)
-			except SyntaxError:
-				continue
+            try:
+                module = importlib.import_module(modpath)
+            except SyntaxError:
+                continue
 
-			# Make sure it is a Command
-			if not hasattr(module, 'Command'):
-				continue
+            # Make sure it is a Command
+            if not hasattr(module, "Command"):
+                continue
 
-			# Load the RollName if possible
-			try:
-				pallet_name = getattr(module, 'RollName')
-			except AttributeError:
-				continue
+            # Load the RollName if possible
+            try:
+                pallet_name = getattr(module, "RollName")
+            except AttributeError:
+                continue
 
-			mapping[pallet_name].append(directory.replace(os.sep, ' '))
+            mapping[pallet_name].append(directory.replace(os.sep, " "))
 
-		# Output a list of commands for the pallets requested
-		self.beginOutput()
+        # Output a list of commands for the pallets requested
+        self.beginOutput()
 
-		for pallet in self.getPallets(args, params):
-			if pallet.name in mapping:
-				for command in mapping[pallet.name]:
-					self.addOutput(pallet.name, command)
-			else:
-				self.addOutput(pallet.name, '')
+        for pallet in self.getPallets(args, params):
+            if pallet.name in mapping:
+                for command in mapping[pallet.name]:
+                    self.addOutput(pallet.name, command)
+            else:
+                self.addOutput(pallet.name, "")
 
-		self.endOutput(header=['pallet', 'command'])
+        self.endOutput(header=["pallet", "command"])

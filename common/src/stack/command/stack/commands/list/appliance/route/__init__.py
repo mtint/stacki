@@ -14,7 +14,7 @@ import stack.commands
 
 
 class Command(stack.commands.list.appliance.command):
-	"""
+    """
 	List the routes for a given appliance type.
 
 	<arg optional='1' type='string' name='appliance' repeat='1'>
@@ -23,6 +23,6 @@ class Command(stack.commands.list.appliance.command):
 	</arg>
 	"""
 
-	def run(self, params, args):
-		self.addText(self.command('list.route', self._argv + ['scope=appliance']))
-		return self.rc
+    def run(self, params, args):
+        self.addText(self.command("list.route", self._argv + ["scope=appliance"]))
+        return self.rc

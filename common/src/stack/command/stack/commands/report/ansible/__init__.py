@@ -1,16 +1,15 @@
 #
 # @SI_COPYRIGHT@
 # @SI_COPYRIGHT@
-# 
+#
 
 import stack.commands
 from stack.bool import str2bool
 from stack.exception import CommandError
 
 
-class Command(stack.commands.Command,
-	stack.commands.HostArgumentProcessor):
-	"""
+class Command(stack.commands.Command, stack.commands.HostArgumentProcessor):
+    """
 	Report an Ansible Inventory Script.
 
 	File defaults to /etc/ansible/hosts in "ini" format.
@@ -45,54 +44,54 @@ class Command(stack.commands.Command,
 	..snip..
 	</example>
 	"""
-	def run(self, params, args):
 
-		attrs, = self.fillParams([ ('attribute', None) ])
+    def run(self, params, args):
 
-		if attrs is not None:
-			attrs = attrs.split(',')
-		else:
-			attrs = []
+        attrs, = self.fillParams([("attribute", None)])
 
-		groups = {}
-		for row in self.call('list.host.attr'):
+        if attrs is not None:
+            attrs = attrs.split(",")
+        else:
+            attrs = []
 
-			host = row['host']
-			attr = row['attr']
-			val  = row['value']
+        groups = {}
+        for row in self.call("list.host.attr"):
 
-			# TODO - Update to use the qualifier to scope these
-			# groups (e.g. a:backend)
+            host = row["host"]
+            attr = row["attr"]
+            val = row["value"]
 
-			if attr == 'appliance':
-				if val not in groups:
-					groups[val] = { 'hosts': [] }
-				groups[val]['hosts'].append(host)
+            # TODO - Update to use the qualifier to scope these
+            # groups (e.g. a:backend)
 
-			elif attr == 'rack':
-				rack = 'rack%s' % val
-				if rack not in groups:
-					groups[rack] = { 'hosts': []}
-				groups[rack]['hosts'].append(host)
+            if attr == "appliance":
+                if val not in groups:
+                    groups[val] = {"hosts": []}
+                groups[val]["hosts"].append(host)
 
-			elif attr == 'managed':
-				if str2bool(val) is True:
-					if attr not in groups:
-						groups[attr] = { 'hosts': [] }
-					groups['managed']['hosts'].append(host)
+            elif attr == "rack":
+                rack = "rack%s" % val
+                if rack not in groups:
+                    groups[rack] = {"hosts": []}
+                groups[rack]["hosts"].append(host)
 
-			elif attr in attrs:
-				if attr not in groups:
-					groups[attr] = { 'hosts': []}
-				groups[attr]['hosts'].append(host)
+            elif attr == "managed":
+                if str2bool(val) is True:
+                    if attr not in groups:
+                        groups[attr] = {"hosts": []}
+                    groups["managed"]["hosts"].append(host)
 
+            elif attr in attrs:
+                if attr not in groups:
+                    groups[attr] = {"hosts": []}
+                groups[attr]["hosts"].append(host)
 
-		self.beginOutput()
-		self.addOutput('', '<stack:file stack:name="/etc/ansible/hosts">')
-		for cat in groups:
-			self.addOutput('', '[%s]' % cat)
-			hostlist = '\n'.join(groups[cat]['hosts'])
-			self.addOutput('', hostlist)
-			self.addOutput('', '')
-		self.addOutput('', '</stack:file>')
-		self.endOutput(padChar='')
+        self.beginOutput()
+        self.addOutput("", '<stack:file stack:name="/etc/ansible/hosts">')
+        for cat in groups:
+            self.addOutput("", "[%s]" % cat)
+            hostlist = "\n".join(groups[cat]["hosts"])
+            self.addOutput("", hostlist)
+            self.addOutput("", "")
+        self.addOutput("", "</stack:file>")
+        self.endOutput(padChar="")

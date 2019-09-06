@@ -7,9 +7,9 @@
 import fnmatch
 import stack.commands
 
-class Command(stack.commands.list.command,
-	      stack.commands.PalletArgumentProcessor):
-	"""
+
+class Command(stack.commands.list.command, stack.commands.PalletArgumentProcessor):
+    """
 	Lists the set of tags for hosts.
 
 	<arg optional='1' type='string' name='pallet' repeat='1'>
@@ -39,42 +39,36 @@ class Command(stack.commands.list.command,
 	</param>
 	"""
 
-	def run(self, params, args):
+    def run(self, params, args):
 
-		pallets = self.getPallets(args, params)
+        pallets = self.getPallets(args, params)
 
-		(glob, ) = self.fillParams([ 
-			('tag', '*')
-			])
+        (glob,) = self.fillParams([("tag", "*")])
 
-		tags = {}
-		for (tname, tvalue, pid) in self.db.select("""
+        tags = {}
+        for (tname, tvalue, pid) in self.db.select(
+            """
 			t.tag, t.value, p.id from
 			rolls p, tags t where
 			t.scope   = "pallet" and
 			t.scopeid = p.id
-			"""):
-			if pid not in tags:
-				tags[pid] = {}
-			if fnmatch.fnmatch(tname, glob):
-				tags[pid][tname] = tvalue
-		
-		self.beginOutput()
+			"""
+        ):
+            if pid not in tags:
+                tags[pid] = {}
+            if fnmatch.fnmatch(tname, glob):
+                tags[pid][tname] = tvalue
 
-		for pallet in pallets:
-			if pallet.id not in tags:
-				continue
-			for key in sorted(tags[pallet.id].keys()):
-				value = tags[pallet.id][key]
-				self.addOutput(pallet.name, 
-					       (pallet.version, pallet.rel, 
-						pallet.arch, pallet.os, 
-					        key, value))
+        self.beginOutput()
 
-		self.endOutput(('pallet', 'version', 'release', 'arch', 'os', 
-				'tag', 'value'))
+        for pallet in pallets:
+            if pallet.id not in tags:
+                continue
+            for key in sorted(tags[pallet.id].keys()):
+                value = tags[pallet.id][key]
+                self.addOutput(
+                    pallet.name,
+                    (pallet.version, pallet.rel, pallet.arch, pallet.os, key, value),
+                )
 
-
-
-
-
+        self.endOutput(("pallet", "version", "release", "arch", "os", "tag", "value"))

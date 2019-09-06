@@ -12,7 +12,7 @@ from stack.exception import ArgRequired, ParamError
 
 
 class Command(stack.commands.set.host.command):
-	"""
+    """
 	Sends a "power" command to a host. Valid power commands are: on, off and reset. This
 	command uses IPMI to change the power setting on a host.
 	
@@ -33,71 +33,74 @@ class Command(stack.commands.set.host.command):
 	</example>
 	"""
 
-	def doPower(self, host, ipmi_ip, cmd):
-		import subprocess
-		import shlex
+    def doPower(self, host, ipmi_ip, cmd):
+        import subprocess
+        import shlex
 
-		if not ipmi_ip:
-			return
+        if not ipmi_ip:
+            return
 
-		username = self.getHostAttr(host, 'ipmi_username')
-		if not username:
-			username = 'root'
+        username = self.getHostAttr(host, "ipmi_username")
+        if not username:
+            username = "root"
 
-		password = self.getHostAttr(host, 'ipmi_password')
-		if not password:
-			password = 'admin'
+        password = self.getHostAttr(host, "ipmi_password")
+        if not password:
+            password = "admin"
 
-		ipmi = 'ipmitool -I lanplus -H %s -U %s -P %s chassis power %s' \
-			% (ipmi_ip, username, password, cmd)
+        ipmi = "ipmitool -I lanplus -H %s -U %s -P %s chassis power %s" % (
+            ipmi_ip,
+            username,
+            password,
+            cmd,
+        )
 
-		p = subprocess.Popen(shlex.split(ipmi), stdout = subprocess.PIPE,
-			stderr = subprocess.STDOUT)
-		out, err = p.communicate()
+        p = subprocess.Popen(
+            shlex.split(ipmi), stdout=subprocess.PIPE, stderr=subprocess.STDOUT
+        )
+        out, err = p.communicate()
 
-		if self.debug:
-			self.beginOutput()
-			self.addOutput(host, out.decode())
-			self.endOutput(padChar='', trimOwner=True)
+        if self.debug:
+            self.beginOutput()
+            self.addOutput(host, out.decode())
+            self.endOutput(padChar="", trimOwner=True)
 
-		ttl = 60*10
-		if cmd == 'off':
-			ttl = -1
+        ttl = 60 * 10
+        if cmd == "off":
+            ttl = -1
 
-		msg = { 'source' : host, 
-			'channel': 'health', 
-			'ttl'    : ttl,
-			'payload': '{"state": "power %s"}' % cmd }
+        msg = {
+            "source": host,
+            "channel": "health",
+            "ttl": ttl,
+            "payload": '{"state": "power %s"}' % cmd,
+        }
 
-		tx = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-		tx.sendto(json.dumps(msg).encode(), 
-			  ('127.0.0.1', stack.mq.ports.publish))
-		tx.close()
+        tx = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        tx.sendto(json.dumps(msg).encode(), ("127.0.0.1", stack.mq.ports.publish))
+        tx.close()
 
+    def run(self, params, args):
+        if not len(args):
+            raise ArgRequired(self, "host")
 
+        cmd, debug = self.fillParams([("command", None, True), ("debug", False)])
 
-	def run(self, params, args):
-		if not len(args):
-			raise ArgRequired(self, 'host')
+        if cmd == "status":
+            #
+            # used by "stack list host power" -- this is an easy way in which to
+            # share code between the two commands
+            #
+            # set 'debug' to True in order to get output from the status command
+            #
+            debug = True
+        elif cmd not in ["on", "off", "reset"]:
+            raise ParamError(self, "command", 'must be "on", "off" or "reset"')
 
-		cmd, debug = self.fillParams([ ('command', None, True), ('debug', False) ])
+        self.debug = self.str2bool(debug)
 
-		if cmd == 'status':
-			#
-			# used by "stack list host power" -- this is an easy way in which to
-			# share code between the two commands
-			#
-			# set 'debug' to True in order to get output from the status command
-			#
-			debug = True
-		elif cmd not in [ 'on', 'off', 'reset' ]:
-			raise ParamError(self, 'command', 'must be "on", "off" or "reset"')
-		
-		self.debug = self.str2bool(debug)
-		
-		for host in self.getHostnames(args):
-			for o in self.call('list.host.interface', [ host ]):
-				if o['interface'] == 'ipmi':
-					self.doPower(host, o['ip'], cmd)
-					break
-
+        for host in self.getHostnames(args):
+            for o in self.call("list.host.interface", [host]):
+                if o["interface"] == "ipmi":
+                    self.doPower(host, o["ip"], cmd)
+                    break

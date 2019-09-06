@@ -10,85 +10,90 @@ import stack.commands
 
 
 class Command(stack.commands.load.command):
+    def check_host(self, host):
+        self.check_required(host, "host", ("name", "appliance", "rack", "rank"))
 
+    def check_interface(self, interfaces):
+        for interface in interfaces:
+            self.check_required(
+                interface, "interface", ("interface", "mac", "ip", "network")
+            )
 
+    def load_interface(self, interfaces, host):
+        for interface in interfaces:
+            name = interface["interface"]
+            params = {}
+            for param, field in [
+                ("interface", "interface"),
+                ("mac", "mac"),
+                ("ip", "ip"),
+                ("network", "network"),
+                ("name", "name"),
+                ("default", "default"),
+                ("module", "module"),
+                ("vlan", "vlan"),
+                ("options", "options"),
+                ("channel", "channel"),
+            ]:
+                value = interface.get(field)
+                if value:
+                    params[param] = value
+            self.stack("add.host.interface", name, **params)
 
-	def check_host(self, host):
-		self.check_required(host, 'host', ('name', 'appliance', 'rack', 'rank'))
+            for alias in interface.get("alias"):
+                self.stack(
+                    "add.host.interface.alias",
+                    name,
+                    {"alias": alias},
+                    {"interface": interface["interface"]},
+                )
 
+    def load_host(self, host):
+        name = host["name"]
 
-	def check_interface(self, interfaces):
-		for interface in interfaces:
-			self.check_required(interface, 'interface',
-					    ('interface', 'mac', 'ip', 'network'))
+        params = {
+            "appliance": host["appliance"],
+            "rack": host["rack"],
+            "rank": host["rank"],
+        }
 
+        for key in [
+            "box",
+            "environment",
+            "osaction",
+            "installaction",
+            "comment",
+            "metadata",
+        ]:
+            val = host.get(key)
+            if val:
+                params[key] = val
 
-	def load_interface(self, interfaces, host):
-		for interface in interfaces:
-			name   = interface['interface']
-			params = {}
-			for param, field in [('interface', 'interface'),
-					     ('mac',       'mac'),
-					     ('ip',        'ip'),
-					     ('network',   'network'),
-					     ('name',      'name'),
-					     ('default',   'default'),
-					     ('module',    'module'),
-					     ('vlan',      'vlan'),
-					     ('options',   'options'),
-					     ('channel',   'channel')]:
-				value = interface.get(field)
-				if value:
-					params[param] = value
-			self.stack('add.host.interface', name, **params)
-			
-			for alias in interface.get('alias'):
-				self.stack('add.host.interface.alias', name, 
-					   {'alias': alias},
-					   {'interface': interface['interface']})
+        self.stack("add.host", name, **params)
 
-		
-	def load_host(self, host):
-		name = host['name']
+    def run(self, params, args):
 
-		params = {'appliance': host['appliance'],
-			  'rack'     : host['rack'],
-			  'rank'     : host['rank'] }
+        if not args:
+            raise ArgRequired(self, "filename")
+        if len(args) > 1:
+            raise ArgUnique(self, "filename")
 
-		for key in [ 'box', 'environment', 
-			     'osaction', 'installaction', 
-			     'comment', 'metadata' ]:
-			val = host.get(key)
-			if val:
-				params[key] = val
-				
-		self.stack('add.host', name, **params)
+        control = (
+            ("interface", self.check_interface, self.load_interface),
+            ("attr", self.check_attr, self.load_attr),
+        )
 
-	def run(self, params, args):
+        self.set_scope("host")
 
-		if not args:
-			raise ArgRequired(self, 'filename')
-		if len(args) > 1:
-			raise ArgUnique(self, 'filename')
+        document = self.load_file(args[0])
 
-		control = (('interface', self.check_interface, self.load_interface),
-			   ('attr',      self.check_attr,      self.load_attr))
+        for section in document:
+            self.check_host(section)
+            for key, fn, _ in control:
+                fn(section[key])
 
-		self.set_scope('host')
-
-		document = self.load_file(args[0])
-
-		for section in document:
-			self.check_host(section)
-			for key, fn, _ in control:
-				fn(section[key])
-
-		for section in document:
-			hostname = section['name']
-			self.load_host(section)
-			for key, _, fn in control:
-				fn(section[key], hostname)
-
-
-
-
+        for section in document:
+            hostname = section["name"]
+            self.load_host(section)
+            for key, _, fn in control:
+                fn(section[key], hostname)

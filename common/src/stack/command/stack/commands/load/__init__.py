@@ -20,241 +20,232 @@ import shlex
 
 
 class command(stack.commands.Command):
-	MustBeRoot = 0
+    MustBeRoot = 0
 
-	def _load(self, text):
-		parser = JsonComment(json) # standard JSON is stupid
-		try:
-			data = parser.loads(text)
-		except ValueError as e:
-			# parse the error message and split the input at the
-			# syntax error
-			i = int(re.search(r'char (.*?)\)', str(e)).group(1))
-			b = text[:i]
-			a = text[i:]
+    def _load(self, text):
+        parser = JsonComment(json)  # standard JSON is stupid
+        try:
+            data = parser.loads(text)
+        except ValueError as e:
+            # parse the error message and split the input at the
+            # syntax error
+            i = int(re.search(r"char (.*?)\)", str(e)).group(1))
+            b = text[:i]
+            a = text[i:]
 
-			# find the line with the error and report it
-			# 'blen' in honor of our intern
+            # find the line with the error and report it
+            # 'blen' in honor of our intern
 
-			line1 = (b[b.rfind('\n'):] + a[:a.find('\n')]).strip()
-			blen  = len((b[b.rfind('\n'):]).strip())
-			line2 = ' ' * blen + '^'
-			raise CommandError(self,
-					   f'syntax error\n{line1}\n{line2}\n{e}')
-		return data
+            line1 = (b[b.rfind("\n") :] + a[: a.find("\n")]).strip()
+            blen = len((b[b.rfind("\n") :]).strip())
+            line2 = " " * blen + "^"
+            raise CommandError(self, f"syntax error\n{line1}\n{line2}\n{e}")
+        return data
 
-	def get_scope(self):
-		try:
-			scope = self.__dump_scope
-		except AttributeError:
-			scope = 'global'
-		return scope
+    def get_scope(self):
+        try:
+            scope = self.__dump_scope
+        except AttributeError:
+            scope = "global"
+        return scope
 
+    def set_scope(self, scope):
+        self.__dump_scope = scope
 
-	def set_scope(self, scope):
-		self.__dump_scope = scope
+    def stack(self, cmd, *args, **params):
+        if not args or args == (None,):
+            args = []
+        if not params:
+            params = {}
+        for key in [key for key in params if params[key] is None]:
+            del params[key]  # nuke *=None params
+        c = " ".join(cmd.split("."))
+        a = ""
+        if args:
+            a = shlex.quote(" ".join(args))
+        p = " ".join([f"{k}={shlex.quote(str(v))}" for k, v in params.items()])
+        print(f'/opt/stack/bin/stack "{c}" {a} {p}')
 
+    def check_required(self, data, section, keys):
+        for key in keys:
+            if data.get(key) is None:
+                raise CommandError(self, f'{section} section missing "{key}"')
 
-	def stack(self, cmd, *args, **params):
-		if not args or args == (None,):
-			args = []
-		if not params:
-			params = {}
-		for key in [key for key in params if params[key] is None]:
-			del params[key]	  # nuke *=None params
-		c = ' '.join(cmd.split('.'))
-		a = ''
-		if args:
-			a = shlex.quote(' '.join(args))
-		p = ' '.join([f'{k}={shlex.quote(str(v))}' for k, v in params.items()])
-		print(f'/opt/stack/bin/stack "{c}" {a} {p}')
+    def load_file(self, filename):
+        scope = self.get_scope()
 
+        try:
+            fin = open(filename, "r")
+            data = fin.read()
+        except IOError:
+            raise CommandError(self, f"cannot read {filename}")
+        document = self._load(data)
+        if scope == "global":
+            return document
+        else:
+            return document.get(scope)
 
-	def check_required(self, data, section, keys):
-		for key in keys:
-			if data.get(key) is None:
-				raise CommandError(self,
-						   f'{section} section missing "{key}"')
+    def load_access(self, access):
+        if not access:
+            return
 
+        for a in access:
+            params = {"command": a.get("command"), "group": a.get("group")}
 
-	def load_file(self, filename):
-		scope = self.get_scope()
+            self.stack("set.access", None, **params)
 
-		try:
-			fin  = open(filename, 'r')
-			data = fin.read()
-		except IOError:
-			raise CommandError(self, f'cannot read {filename}')
-		document = self._load(data)
-		if scope == 'global':
-			return document
-		else:
-			return document.get(scope)
+    def load_attr(self, attrs, target=None):
+        """Loads attr information provided into the current scope."""
+        if not attrs:
+            return
 
+        scope = self.get_scope()
+        assert not (scope != "global" and target is None)
 
-	def load_access(self, access):
-		if not access:
-			return
+        cmd = f"set.{scope}.attr" if scope != "global" else "set.attr"
 
-		for a in access:
-			params = {'command': a.get('command'),
-				  'group'  : a.get('group')}
+        for attr in attrs:
+            params = {
+                "attr": attr.get("name"),
+                "value": attr.get("value"),
+                "shadow": attr.get("shadow"),
+            }
 
-			self.stack('set.access', None, **params)
+            self.stack(cmd, target, **params)
 
+    def load_controller(self, controllers, target=None):
+        """Loads controller information provided into the current scope."""
+        if not controllers:
+            return
 
-	def load_attr(self, attrs, target=None):
-		"""Loads attr information provided into the current scope."""
-		if not attrs:
-			return
+        scope = self.get_scope()
+        assert not (scope != "global" and target is None)
 
-		scope = self.get_scope()
-		assert not (scope != 'global' and target is None)
+        cmd = (
+            f"add.{scope}.storage.controller"
+            if scope != "global"
+            else "add.storage.controller"
+        )
 
-		cmd = f'set.{scope}.attr' if scope != 'global' else 'set.attr'
+        for controller in controllers:
+            params = {
+                "enclosure": controller.get("enclosure"),
+                "adapter": controller.get("adapter"),
+                "slot": controller.get("slot"),
+                "raidlevel": controller.get("raidlevel"),
+                "arrayid": controller.get("arrayid"),
+                "options": controller.get("options"),
+            }
 
-		for attr in attrs:
-			params = {
-				'attr': attr.get('name'),
-				'value': attr.get('value'),
-				'shadow': attr.get('shadow'),
-			}
+            self.stack(cmd, target, **params)
 
-			self.stack(cmd, target, **params)
+    def load_partition(self, partitions, target=None):
+        """Loads partition information provided into the current scope."""
+        if not partitions:
+            return
 
+        scope = self.get_scope()
+        assert not (scope != "global" and target is None)
 
-	def load_controller(self, controllers, target=None):
-		"""Loads controller information provided into the current scope."""
-		if not controllers:
-			return
+        cmd = (
+            f"add.{scope}.storage.partition"
+            if scope != "global"
+            else "add.storage.partition"
+        )
 
-		scope = self.get_scope()
-		assert not (scope != 'global' and target is None)
+        for partition in partitions:
+            params = {
+                "device": partition.get("device"),
+                "partid": partition.get("partid"),
+                "mountpoint": partition.get("mountpoint"),
+                "size": partition.get("size"),
+                "type": partition.get("fstype"),
+                "options": partition.get("options"),
+            }
 
-		cmd = f'add.{scope}.storage.controller' if scope != 'global' else 'add.storage.controller'
+            self.stack(cmd, target, **params)
 
-		for controller in controllers:
-			params = {
-				'enclosure': controller.get('enclosure'),
-				'adapter': controller.get('adapter'),
-				'slot': controller.get('slot'),
-				'raidlevel': controller.get('raidlevel'),
-				'arrayid': controller.get('arrayid'),
-				'options': controller.get('options'),
-			}
+    def load_firewall(self, firewalls, target=None):
+        """Loads firewall information provided into the current scope."""
+        if not firewalls:
+            return
 
-			self.stack(cmd, target, **params)
+        scope = self.get_scope()
+        assert not (scope != "global" and target is None)
 
-	def load_partition(self, partitions, target=None):
-		"""Loads partition information provided into the current scope."""
-		if not partitions:
-			return
+        cmd = f"add.{scope}.firewall" if scope != "global" else "add.firewall"
 
-		scope = self.get_scope()
-		assert not (scope != 'global' and target is None)
+        for firewall in firewalls:
+            params = {
+                "service": firewall.get("service"),
+                "network": firewall.get("network"),
+                "output_network": firewall.get("output-network"),
+                "chain": firewall.get("chain"),
+                "action": firewall.get("action"),
+                "protocol": firewall.get("protocol"),
+                "flags": firewall.get("flags"),
+                "comment": firewall.get("comment"),
+                "table": firewall.get("table"),
+                "rulename": firewall.get("name"),
+            }
 
-		cmd = f'add.{scope}.storage.partition' if scope != 'global' else 'add.storage.partition'
+            self.stack(cmd, target, **params)
 
-		for partition in partitions:
-			params = {
-				'device': partition.get('device'),
-				'partid': partition.get('partid'),
-				'mountpoint': partition.get('mountpoint'),
-				'size': partition.get('size'),
-				'type': partition.get('fstype'),
-				'options': partition.get('options'),
-			}
+    def load_route(self, routes, target=None):
+        """Loads route information provided into the current scope."""
+        if not routes:
+            return
 
-			self.stack(cmd, target, **params)
+        scope = self.get_scope()
+        assert not (scope != "global" and target is None)
 
+        cmd = f"add.{scope}.route" if scope != "global" else "add.route"
 
-	def load_firewall(self, firewalls, target=None):
-		"""Loads firewall information provided into the current scope."""
-		if not firewalls:
-			return
+        for route in routes:
+            # In `add route` the gateway parameter is overloaded to either be a subnet(network) name or a gateway.
+            # We need to chose whichever one is set in the dump.
+            gateway = route.get("gateway")
+            params = {
+                "address": route.get("address"),
+                # Specifically not using `is not None` because we also want to reject the empty string.
+                "gateway": gateway if gateway else route.get("subnet"),
+                "netmask": route.get("netmask"),
+                "interface": route.get("interface"),
+            }
 
-		scope = self.get_scope()
-		assert not (scope != 'global' and target is None)
+            self.stack(cmd, target, **params)
 
-		cmd = f'add.{scope}.firewall' if scope != 'global' else 'add.firewall'
+    def run(self, params, args):
 
-		for firewall in firewalls:
-			params = {
-				'service': firewall.get('service'),
-				'network': firewall.get('network'),
-				'output_network': firewall.get('output-network'),
-				'chain': firewall.get('chain'),
-				'action': firewall.get('action'),
-				'protocol': firewall.get('protocol'),
-				'flags': firewall.get('flags'),
-				'comment': firewall.get('comment'),
-				'table': firewall.get('table'),
-				'rulename': firewall.get('name'),
-			}
+        (document,) = self.fillParams([("document", None)])
 
-			self.stack(cmd, target, **params)
+        if not document:
+            if not args:
+                raise ArgRequired(self, "filename")
+            if len(args) > 1:
+                raise ArgUnique(self, "filename")
+            document = self.load_file(args[0])
 
-
-	def load_route(self, routes, target=None):
-		"""Loads route information provided into the current scope."""
-		if not routes:
-			return
-
-		scope = self.get_scope()
-		assert not (scope != 'global' and target is None)
-
-		cmd = f'add.{scope}.route' if scope != 'global' else 'add.route'
-
-		for route in routes:
-			# In `add route` the gateway parameter is overloaded to either be a subnet(network) name or a gateway.
-			# We need to chose whichever one is set in the dump.
-			gateway = route.get('gateway')
-			params = {
-				'address': route.get('address'),
-				# Specifically not using `is not None` because we also want to reject the empty string.
-				'gateway': gateway if gateway else route.get('subnet'),
-				'netmask': route.get('netmask'),
-				'interface': route.get('interface'),
-			}
-
-			self.stack(cmd, target, **params)
-
-
-	def run(self, params, args):
-
-		(document, ) = self.fillParams([
-			('document', None)
-		])
-
-		if not document:
-			if not args:
-				raise ArgRequired(self, 'filename')
-			if len(args) > 1:
-				raise ArgUnique(self, 'filename')
-			document = self.load_file(args[0])
-
-		self.main(document)
-
-
+        self.main(document)
 
 
 class Command(command):
-	"""
+    """
 	Load configuration data from the provided json document. If no arguments
 	are provided then all plugins will be run.
 	"""
 
-	def main(self, document):
+    def main(self, document):
 
-		self.set_scope('global')
+        self.set_scope("global")
 
-		self.load_access(document.get('access'))
-		self.load_attr(document.get('attr'))
-		self.load_controller(document.get('controller'))
-		self.load_partition(document.get('partition'))
-		self.load_firewall(document.get('firewall'))
+        self.load_access(document.get("access"))
+        self.load_attr(document.get("attr"))
+        self.load_controller(document.get("controller"))
+        self.load_partition(document.get("partition"))
+        self.load_firewall(document.get("firewall"))
 
-		for plugin in self.loadPlugins():
-			section = document.get(plugin.provides())
-			if section:
-				plugin.run(section)
+        for plugin in self.loadPlugins():
+            section = document.get(plugin.provides())
+            if section:
+                plugin.run(section)

@@ -15,7 +15,7 @@ import stack.commands
 
 
 class Command(stack.commands.sync.command):
-	"""
+    """
 	For each system configuration file controlled by Stack, first
 	rebuild the configuration file by extracting data from the
 	database, then restart the relevant services.
@@ -25,8 +25,8 @@ class Command(stack.commands.sync.command):
 	</example>
 	"""
 
-	def run(self, params, args):
+    def run(self, params, args):
 
-		self.notify('Sync Config')
+        self.notify("Sync Config")
 
-		self.runPlugins()
+        self.runPlugins()

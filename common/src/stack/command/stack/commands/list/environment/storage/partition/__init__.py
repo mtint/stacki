@@ -8,7 +8,7 @@ import stack.commands
 
 
 class Command(stack.commands.list.environment.command):
-	"""
+    """
 	List the storage partition configuration for one or more environments.
 
 	<arg optional='1' type='string' name='environment' repeat='1'>
@@ -16,6 +16,8 @@ class Command(stack.commands.list.environment.command):
 	</arg>
 	"""
 
-	def run(self, params, args):
-		self.addText(self.command('list.storage.partition', self._argv + ['scope=environment']))
-		return self.rc
+    def run(self, params, args):
+        self.addText(
+            self.command("list.storage.partition", self._argv + ["scope=environment"])
+        )
+        return self.rc
