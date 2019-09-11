@@ -1,0 +1,14 @@
+type Group {
+  id: Int
+  name: String
+  hosts: [Host]
+}
+
+extend type Query {
+  groups: [Group]
+}
+
+extend type Mutation {
+  addGroup(name: String!): Group
+  deleteGroup(name: String!): Boolean!
+}

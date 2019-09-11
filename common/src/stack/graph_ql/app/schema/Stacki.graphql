@@ -123,10 +123,10 @@ type FirmwareVersionRegex {
   description: String!
 }
 
-type Groups {
-  id: Int!
-  name: String!
-}
+#type Groups {
+#  id: Int!
+#  name: String!
+#}
 
 type IbMemberships {
   id: Int!
