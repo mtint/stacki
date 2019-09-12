@@ -5,7 +5,7 @@ type Group {
 }
 
 extend type Query {
-  groups: [Group]
+  groups(grp_name: String): [Group]
 }
 
 extend type Mutation {

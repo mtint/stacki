@@ -9,20 +9,18 @@ import app.db as db
 
 query = QueryType()
 mutation = MutationType()
-#group = ObjectType("Group")
-host = ObjectType("Host")
+group = ObjectType("Group")
 
 @query.field('groups')
 def resolve_group(*_):
 	results, _ = db.run_sql("SELECT id, name FROM groups")
 	return results
 
-@host.field('name')
-def resolve_host_group(obj):
+@group.field('hosts')
+def resolve_host_group(obj, info):
 	cmd ="""
-		SELECT * FROM nodes WHERE id=(
-		SELECT nodeid FROM memberships WHERE
-		groupid=%s)
+		SELECT * FROM nodes INNER JOIN memberships
+		on memberships.nodeid=nodes.id WHERE memberships.groupid=%s
 		"""
 	args = [obj.get('id')]
 	results, _ = db.run_sql(cmd, args)
@@ -55,4 +53,4 @@ def resolve_delete_group(_, info, name):
 
 	return True
 
-object_types = [host]
+object_types = [group]
