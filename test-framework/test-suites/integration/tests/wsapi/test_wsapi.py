@@ -1,6 +1,6 @@
 import json
 
-
+@pytest.mark.usefixtures("exclusive_lock")
 class TestWSAPI_sudo:
 	def test_api_sudo_commands(self, exclusive_lock, host, revert_etc):
 		# Add list host to sudo commands
@@ -56,6 +56,7 @@ class TestWSAPI_sudo:
 		assert op.stderr == "error - Command huh not found\n"
 
 
+@pytest.mark.usefixtures("exclusive_lock")
 class TestWSAPI_Blacklist:
 	def test_api_blacklist_commands(self, exclusive_lock, host):
 		# Add list host to blacklist commands
@@ -82,6 +83,7 @@ class TestWSAPI_Blacklist:
 		assert op.stderr == "error - Command list host is not blacklisted\n"
 
 
+@pytest.mark.usefixtures("exclusive_lock")
 class TestWSAPI_User:
 	def test_api_user_commands(self, host):
 		# Add api user
@@ -124,6 +126,7 @@ class TestWSAPI_User:
 		assert op.stderr == "error - Cannot find user testuser\n"
 
 
+@pytest.mark.usefixtures("exclusive_lock")
 class TestWSAPI_Group:
 	def test_api_group_commands(self, host):
 		# Add group
