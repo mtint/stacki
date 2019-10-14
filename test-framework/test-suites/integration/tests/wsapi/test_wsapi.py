@@ -1,4 +1,5 @@
 import json
+import pytest
 
 @pytest.mark.usefixtures("exclusive_lock")
 class TestWSAPI_sudo:
