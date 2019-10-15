@@ -7,7 +7,7 @@ If additional keys are listed in the authorized_keys attribute, copy those as we
 
 <stack:copyright>
 Copyright (c) 2006 - 2019 Teradata
-All rights reserved. Stacki(r) v5.x stacki.com
+All rights reserved. Stacki(r) v5.x stacki.org
 https://github.com/Teradata/stacki/blob/master/LICENSE.txt
 </stack:copyright>
 
