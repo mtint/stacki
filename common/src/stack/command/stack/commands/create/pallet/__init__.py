@@ -12,13 +12,10 @@
 
 
 import os
-import sys
-import string
 import time
 import tempfile
 import shutil
 import subprocess
-import shlex
 import glob
 import json
 import stack
@@ -28,6 +25,7 @@ import stack.file
 import stack.roll
 import stack.util
 import stack.bootable
+import stack.probepal
 from stack.exception import CommandError, ArgRequired
 
 
@@ -38,9 +36,6 @@ class Builder:
 		self.config = None
 		self.tempdir = os.getcwd()
 
-	def mktemp(self):
-		return tempfile.mktemp(dir=self.tempdir)
-		
 	def makeBootable(self, name, version, release, arch):
 		pass
 				
@@ -54,17 +49,25 @@ class Builder:
 
 		volname = "stacki"
 		cwd = os.getcwd()
-		cmd = 'mkisofs -quiet -V "%s" %s -r -T -f -o %s .' % \
-			(volname, extraflags, os.path.join(cwd, isoName))
+		cmd = ['mkisofs',
+			'-volid',
+			f'"{volname}"',
+			extraflags,
+			'-rational-rock',
+			'-translation-table',
+			'-follow-links',
+			'-output',
+			os.path.join(cwd, isoName),
+			'.',
+		]
 
-#		print('mkisofs: cmd %s' % cmd)
-		stack.util._exec(cmd, shlexsplit=True, cwd=rollDir)
+		try:
+			stack.util._exec(cmd, shlexsplit=True, cwd=rollDir, check=True)
+		except subprocess.CalledProcessError as e:
+			print(cmd, e.stdout, e.stderr)
 
 		if self.config.isBootable():
-			stack.util._exec(['isohybrid', os.path.join(cwd, isoName)], cwd=rollDir)
-#			subprocess.call([ 'isohybrid',
-#				os.path.join(cwd, isoName) ])
-#		os.chdir(cwd)
+			stack.util._exec(['isohybrid', os.path.join(cwd, isoName)], cwd=rollDir, check=True)
 
 		
 	def writerepo(self, name, version, release, OS, arch):
@@ -114,22 +117,6 @@ class Builder:
 
 		shutil.copy(file.getFullName(), fullname)
 		os.utime(fullname, (file.getTimestamp(), file.getTimestamp()))
-
-
-	def copyRoll(self, roll, dir):
-		if roll.isRollForeign():
-			self.command('add.pallet', [ roll.getFullName(),
-				'dir=%s' % dir, 'updatedb=n' ])
-
-		else:
-			tmp = self.mktemp()
-			os.makedirs(tmp)
-			os.system('mount -o loop -t iso9660 %s %s > /dev/null 2>&1' %
-				  (roll.getFullName(), tmp))
-			tree = stack.file.Tree(tmp)
-			tree.apply(self.copyFile, dir)
-			os.system('umount %s > /dev/null 2>&1' % tmp)
-			shutil.rmtree(tmp)
 
 
 	def stampDisk(self, dir, name, arch, id=1):
@@ -290,11 +277,10 @@ class RollBuilder(Builder, stack.dist.Arch):
 		# Use system python (2.x)
 		cmd = ['/usr/bin/python', '/opt/stack/sbin/yumresolver', yumconf]
 		cmd.extend(rpms)
-		proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-		stdout, stdrr = proc.communicate()
+		result = stack.util._exec(cmd)
 
 		try:
-			selected = json.loads(stdout)
+			selected = json.loads(result.stdout)
 		except ValueError:
 			raise CommandError(self, 'Unable to parse yum dependency resolution')
 
@@ -334,8 +320,8 @@ class RollBuilder(Builder, stack.dist.Arch):
 
 		cmd = [ 'yumdownloader', '--destdir=%s' % destdir, '-y', '-c', yumconf ]
 		cmd.extend(selected)
-		subprocess.call(cmd, stdin=None)
-		
+		stack.util._exec(cmd)
+
 		stacki = []
 		nonstacki = []
 
@@ -486,7 +472,8 @@ class RollBuilder(Builder, stack.dist.Arch):
 					    self.config.getRollVersion(),
 					    self.config.getRollRelease(),
 					    self.config.getRollOS(),
-					    self.config.getRollArch())
+					    self.config.getRollArch(),
+					)
 
 			rpmsdir = 'RPMS'
 
@@ -564,77 +551,57 @@ class RollBuilder(Builder, stack.dist.Arch):
 
 			self.mkisofs(isoname, self.config.getRollName(), name)
 
-		
-class MetaRollBuilder(Builder):
 
-	def __init__(self, files, rollname, version, release, command):
+class MetaPalletBuilder(Builder):
+
+	def __init__(self, files, meta_pallet_name, version, release, command):
 		self.version = version.strip()
-		self.rollname = rollname
+		self.pallet_name = meta_pallet_name
 		self.command = command
 		self.release = release
+		self.files = files
 
 		Builder.__init__(self)
 
-		self.rolls = []
-
-		for file in files:
-			try:
-				self.rolls.append(stack.file.RollFile(file))
-			except OSError:
-				print('error - %s, no such pallet' % file)
-				sys.exit(-1)
-
 	def run(self):
-	
-		name = []
-		arch = []
-		for roll in self.rolls:
-			if roll.getRollName() not in name:
-				name.append(roll.getRollName())
-			if roll.getRollArch() not in arch:
-				arch.append(roll.getRollArch())
 
-		if not self.rollname:
-			rollName = '+'.join(name)
-		else:
-			rollName = self.rollname
-	
+		tmp = tempfile.mkdtemp()
+
+		self.command(
+			'add.pallet',
+			[*self.files, f'dir={tmp}', 'updatedb=false']
+		)
+
+		pal = stack.probepal.Prober()
+		palinfo = pal.find_pallets(tmp)
+
+		name = list(dict.fromkeys(p.name for p in palinfo[tmp]))
+
+		self.pallet_name = self.pallet_name or '+'.join(name)
+		print(f'Building {self.pallet_name} ...')
+
+		arch = list(dict.fromkeys(p.arch for p in palinfo[tmp]))
 		if len(arch) == 1:
 			arch = arch[0]
 		else:
 			arch = 'any'
-		name = "%s-%s-%s.%s" % (rollName, self.version, self.release, arch)
 
-		# Create the meta pallet
-					
-		print('Building %s ...' % name)
-		tmp = self.mktemp()
-		os.makedirs(tmp)
-		for roll in self.rolls:
-			print('\tcopying %s' % roll.getRollName())
-			self.copyRoll(roll, tmp)
-		isoname = '%s.disk1.iso' % (name)
+		isoname = f"{self.pallet_name}-{self.version}-{self.release}.{arch}.disk1.iso"
 
 		# Find a pallet config file for the meta pallet. If any of
 		# the pallets are bootable grab the config file for the
 		# bootable pallet.  Otherwise just use the file from
 		# the first pallet specified on the command line.
 
-		for roll in self.rolls:
-			xml = os.path.join(tmp, roll.getRollName(), 
-				roll.getRollVersionString(), 
-				roll.getRollRelease(), 
-				'redhat',
-				roll.getRollArch(),
-				'roll-%s.xml' % roll.getRollName())
-			
-			if not os.path.exists(xml):
-				xml = os.path.join(tmp,
-					roll.getRollName(),
-					roll.getRollVersionString(),
-					roll.getRollRelease(),
-					roll.getRollArch(),
-					'roll-%s.xml' % roll.getRollName())
+		for pallet in palinfo[tmp]:
+			xml = os.path.join(tmp,
+				pallet.name,
+				pallet.version,
+				pallet.release,
+				pallet.distro_family,
+				pallet.arch,
+				f'roll-{pallet.name}.xml',
+			)
 
 			config = stack.file.RollInfoFile(xml)
 			if not self.config:
@@ -644,13 +611,14 @@ class MetaRollBuilder(Builder):
 				break
 
 		# Build the ISO.
-		
-		tree = stack.file.Tree(tmp)
-		size = tree.getSize()
-		print('Pallet is %.1fMB' % size)
+		results = stack.util._exec(f'du --block-size=1M --summarize {tmp}'.split())
+		size = results.stdout.split()[0]
+		print(f'Pallet is {size}MB')
 
-		self.stampDisk(tmp, rollName, arch)
-		self.mkisofs(isoname, rollName, 'disk1', tmp)
+# TODO remove line
+#		self.stampDisk(tmp, self.pallet_name, arch)
+		self.mkisofs(isoname, self.pallet_name, 'disk1', tmp)
+		shutil.copyfile(os.path.join(tmp, isoname), os.path.join(os.getcwd(), isoname))
 
 		shutil.rmtree(tmp)
 
@@ -894,7 +862,7 @@ class Command(stack.commands.create.command,
 				base, ext = os.path.splitext(arg)
 				if not ext == '.iso':
 					raise CommandError(self, 'bad iso file')
-			builder = MetaRollBuilder(args, name, version, release,
+			builder = MetaPalletBuilder(args, name, version, release,
 				self.command)
 			
 		builder.run()
