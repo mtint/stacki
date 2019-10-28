@@ -62,7 +62,7 @@ class Builder:
 		]
 
 		try:
-			stack.util._exec(cmd, shlexsplit=True, cwd=rollDir, check=True)
+			stack.util._exec(cmd, cwd=rollDir, check=True)
 		except subprocess.CalledProcessError as e:
 			print(cmd, e.stdout, e.stderr)
 
