@@ -15,6 +15,7 @@ import os
 import time
 import tempfile
 import shutil
+import shlex
 import subprocess
 import glob
 import json
@@ -42,24 +43,22 @@ class Builder:
 	def mkisofs(self, isoName, rollName, diskName, rollDir):
 		print('Building ISO image for %s' % diskName)
 
-		if self.config.isBootable():
-			extraflags = self.config.getISOFlags()
-		else:
-			extraflags = ''
-
 		volname = "stacki"
 		cwd = os.getcwd()
-		cmd = ['mkisofs',
+
+		cmd = ['mkisofs']
+		if self.config.isBootable():
+			cmd.extend(shlex.split(self.config.getISOFlags()))
+		cmd.extend([
 			'-volid',
 			f'"{volname}"',
-			extraflags,
 			'-rational-rock',
 			'-translation-table',
 			'-follow-links',
 			'-output',
 			os.path.join(cwd, isoName),
 			'.',
-		]
+		])
 
 		try:
 			stack.util._exec(cmd, cwd=rollDir, check=True)
