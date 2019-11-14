@@ -150,6 +150,9 @@ if File.file?('.vagrant/cluster-up.json')
           provider.qemuargs :value => "-boot"
           provider.qemuargs :value => "reboot-timeout=10000"
 
+          # Add a second disk
+          provider.storage :file, :bus => "sata", :size => "50G"
+
           config.vm.network "private_network",
             mac: sprintf("5254000000%02X", i+3),
             libvirt__network_name: NAME,
