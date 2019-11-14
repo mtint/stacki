@@ -76,7 +76,7 @@ class Command(stack.commands.add.command):
 			('address', None, True),
 			('mask', None, True),
 			('gateway', None),
-			('mtu', '1500'),
+			('mtu', None),
 			('zone', name),
 			('dns', 'n'),
 			('pxe', 'n')
