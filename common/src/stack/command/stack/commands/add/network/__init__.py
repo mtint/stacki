@@ -39,7 +39,7 @@ class Command(stack.commands.add.command):
 	</param>
 	
 	<param name='mtu'>
-	The MTU for the new network. Default is 1500.
+	The MTU for the new network. Default is unset.
 	</param>
 
 	<param name='zone'>
