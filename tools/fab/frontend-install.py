@@ -1,16 +1,9 @@
 #!/usr/bin/python
 
-# Things the RPM will do:
-# Copy foundation.conf to /etc/ld.so.conf.d/
-# Copy boss-config files to /opt/stack/bin.  Boss_config.py
-# has to be changed to accomodate lack of database
-# Copy wxpython RPM somewhere (it isnt included in 6.6)
-
 from __future__ import print_function
 import os
 import sys
 import subprocess
-import random
 import getopt
 import tempfile
 import socket
@@ -30,7 +23,6 @@ Kickstart_Keyboard:us
 Kickstart_Lang:en_US
 Kickstart_Langsupport:en_US
 Kickstart_PrivateAddress:{NETWORK_ADDRESS}
-Kickstart_PrivateBroadcast:{BROADCAST_ADDRESS}
 Kickstart_PrivateDNSDomain:{DOMAIN}
 Kickstart_PrivateDNSServers:{DNS_SERVERS}
 Kickstart_PrivateEthernet:{MAC_ADDRESS}
@@ -38,7 +30,6 @@ Kickstart_PrivateGateway:{GATEWAY}
 Kickstart_PrivateHostname:{HOSTNAME}
 Kickstart_PrivateInterface:{NETWORK_INTERFACE}
 Kickstart_PrivateKickstartHost:{NETWORK_ADDRESS}
-Kickstart_PrivateNTPHost:{NETWORK_ADDRESS}
 Kickstart_PrivateNetmask:{NETMASK}
 Kickstart_PrivateNetmaskCIDR:{NETMASK_CIDR}
 Kickstart_PrivateNetwork:{NETWORK}
@@ -83,17 +74,6 @@ def installrpms(pkgs):
 		cmd = [ 'zypper', 'install', '-y', '-f' ]
 	cmd += pkgs
 	return subprocess.call(cmd)
-
-
-def generate_multicast():
-	a = random.randrange(225, 240)
-	# Exclude 232
-	while a == 232:
-		a = random.randrange(225, 240)
-	b = random.randrange(1, 255)
-	c = random.randrange(1, 255)
-	d = random.randrange(1, 255)
-	return str(a) + '.' + str(b) + '.' + str(c) + '.' + str(d)
 
 
 def find_repos(iso, stacki_only=False):
@@ -502,7 +482,6 @@ if not os.path.exists('/tmp/site.attrs') and not os.path.exists('/tmp/rolls.xml'
 
 	# add missing attrs to site.attrs
 	with open("/tmp/site.attrs", "a") as attrs_file:
-		attrs_file.write("Kickstart_Multicast:{}\n".format(generate_multicast()))
 		attrs_file.write("Server_Partitioning:force-default-root-disk-only\n")
 
 # convert site.attrs to python dict
