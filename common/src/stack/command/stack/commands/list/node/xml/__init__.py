@@ -11,7 +11,7 @@
 # @rocks@
 
 
-
+import ast
 import os
 import subprocess
 import stack
@@ -78,7 +78,7 @@ class Command(stack.commands.list.command,
 
 		if attributes:
 			try:
-				attrs = eval(attributes)
+				attrs = ast.literal_eval(attributes)
 			except:
 				attrs = {}
 				if os.path.exists(attributes):
@@ -323,7 +323,7 @@ class Command(stack.commands.list.command,
 
 		self.addText('<stack:profile stack:os="%s"' % attrs['os'])
 		self.addText(' %s' % handler.nsAttrs())
-		self.addText(' stack:attrs="%s">\n' % saxutils.escape('%s' % attrs))
+		self.addText(' stack:attrs=%s>\n' % saxutils.quoteattr('%s' % attrs))
 
 		self.runPlugins(attrs)
 
