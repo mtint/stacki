@@ -760,6 +760,9 @@ class HostArgumentProcessor:
 		network being priority.
 		This function needs to be called for any command that connects to backends
 		over SSH to run commands - typically "sync host..." or "run host" commands
+
+		Note: if a host has no interfaces, it will be removed from the returned
+		results
 		"""
 
 		# Get a list of all attributes for the hosts, and convert the output
@@ -780,11 +783,16 @@ class HostArgumentProcessor:
 
 		# Get a list of all the host interfaces for the hosts specified.
 		host_if = self.call('list.host.interface', hosts + ['expanded=True'])
-
+		hosts_with_interfaces = {host['host'] for host in host_if}
 		for host in hosts:
+			# if a host has no interfaces, it isn't reachable/runnable so don't try.
+			# note, this can cause problems for code that assumes getRunHosts() will
+			# always return as many hosts as it is passed
+			if host not in hosts_with_interfaces:
+				del h[host]
 			# If "stack.network" attribute is specified and points to a valid network
 			# use the hostname of the host on THAT network.
-			if 'stack.network' in attrs[host]:
+			elif 'stack.network' in attrs[host]:
 				h[host] = self.getHostnames([host], subnet = attrs[host]['stack.network'])[0]
 			# If not get the list of all PXE-Enabled addresses for the host, with the "default"
 			# network being prioritized. If one of the PXE-Enabled networks isn't default, then
