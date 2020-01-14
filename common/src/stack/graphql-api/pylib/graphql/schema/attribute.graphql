@@ -25,11 +25,13 @@ extend type Query {
 		const: Boolean, shadow: Boolean, scope: Scope, targets: [String!]
 	): [Attribute!]!
 
-	#attributes_exist(names: [String!]): [Lookup!]!
+	attributes_exist(names: [String!], scope: Scope, targets: [String!]): [Lookup!]!
 }
 
-# extend type Mutation {
+extend type Mutation {
 # 	add_attribute(
 # 		name: String!, value: String!, scope: Scope, targets: [String!], force: Boolean
 # 	): AttributeResult!
-# }
+
+	remove_attribute(id: Int, name: String, scope: Scope, targets: [String!]): Status!
+}

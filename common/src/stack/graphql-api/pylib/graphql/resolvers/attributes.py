@@ -144,6 +144,25 @@ def attributes(
 
 	return output
 
+@query.field("attributes_exist")
+def attributes_exist(obj, info, names=None, scope="global", targets=None):
+	lookups = []
+
+	if names:
+		# Gather up the lookup results
+		for name in names:
+			results = attributes(
+				obj, info, name=name, resolve=False, const=False,
+				scope=scope, targets=targets
+			)
+
+			lookups.append({
+				"name": name,
+				"exists": len(results) != 0
+			})
+
+	return lookups
+
 # @mutation.field("add_attribute")
 # def add_attribute(obj, info, name, value, scope="global", targets=None, force=False):
 # 	# Validate the name
@@ -156,3 +175,49 @@ def attributes(
 # 	else:
 # 		# remove_attribute(obj, info, name, scope, targets)
 # 		pass
+
+@mutation.field("remove_attribute")
+@map_kwargs({"id": "id_"})
+def remove_attribute(obj, info, id_=None, name=None, scope="global", targets=None):
+	# Not being given a remove target is a no-op
+	if id_ or name:
+		# Get a list of matching attributes
+		results = attributes(
+			obj, info, id_=id_, name=name, resolve=False, const=False,
+			scope=scope, targets=targets
+		)
+
+		# Split the results into normal and shadow lists
+		normal_ids = []
+		shadow_ids = []
+		for attribute in results:
+			if attribute["type"] == "shadow":
+				shadow_ids.append(attribute["id"])
+			else:
+				normal_ids.append(attribute["id"])
+
+		# Delete the normal attributes
+		# Note: This will cascade delete the attribute data
+		if normal_ids:
+			info.context.execute("""
+				DELETE FROM scope_map
+				WHERE id IN (
+					SELECT scope_map_id
+					FROM attributes
+					WHERE attributes.id IN %s
+				)
+			""", (normal_ids,))
+
+		# And the shadow ones
+		# Note: Again, cascade delete is our friend
+		if shadow_ids:
+			info.context.execute("""
+				DELETE FROM scope_map
+				WHERE id IN (
+					SELECT scope_map_id
+					FROM shadow.attributes
+					WHERE attributes.id IN %s
+				)
+			""", (shadow_ids,))
+
+	return success()
