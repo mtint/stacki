@@ -118,3 +118,54 @@ def create_scope_query(scope, table, fields, id_filter=None, targets=None, resol
 		query += f" ORDER BY target, {table}.name"
 
 	return query, values
+
+def create_scope_map_insert_queries(cursor, scope, targets=None):
+	"""
+	Returns a list of queries to insert new scope_map entries for the
+	provided scope and targets
+	"""
+
+	def _get_target_ids(table):
+		query = f"SELECT id FROM {table}"
+		filters, values = create_common_filters(None, targets)
+
+		if filters:
+			query += " WHERE " + " AND ".join(filters)
+
+		query += " ORDER BY id"
+
+		cursor.execute(query, values)
+		return [row["id"] for row in cursor.fetchall()]
+
+	values = []
+
+	# Get the values for the queries
+	if scope == "global":
+		values.append((scope, None, None, None, None))
+
+	elif scope == "appliance":
+		for appliance_id in _get_target_ids("appliances"):
+			values.append((scope, appliance_id, None, None, None))
+
+	elif scope == "os":
+		for os_id in _get_target_ids("oses"):
+			values.append((scope, None, os_id, None, None))
+
+	elif scope == "environment":
+		for environment_id in _get_target_ids("environments"):
+			values.append((scope, None, None, environment_id, None))
+
+	elif scope == "host":
+		for node_id in _get_target_ids("nodes"):
+			values.append((scope, None, None, None, node_id))
+
+	# Each value will need an insert query
+	queries = ["""
+		INSERT INTO scope_map(scope, appliance_id, os_id, environment_id, node_id)
+		VALUES (%s, %s, %s, %s, %s)
+	"""] * len(values)
+
+	print("Queries:", queries)
+	print("Values:", values)
+
+	return zip(queries, values)

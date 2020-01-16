@@ -16,7 +16,7 @@ type Attribute {
 type AttributeResult implements Result {
 	success: Boolean!
 	error: String
-	attribute: Attribute
+	attributes: [Attribute!]!
 }
 
 extend type Query {
@@ -29,9 +29,10 @@ extend type Query {
 }
 
 extend type Mutation {
-# 	add_attribute(
-# 		name: String!, value: String!, scope: Scope, targets: [String!], force: Boolean
-# 	): AttributeResult!
+	add_attribute(
+		name: String!, value: String!, shadow: Boolean,
+		force: Boolean, scope: Scope, targets: [String!]
+	): AttributeResult!
 
 	remove_attribute(id: Int, name: String, scope: Scope, targets: [String!]): Status!
 }

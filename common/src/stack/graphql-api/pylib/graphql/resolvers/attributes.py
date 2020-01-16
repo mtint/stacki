@@ -9,7 +9,7 @@ from pymysql import OperationalError
 from stack.bool import str2bool
 from stack.graphql.resolvers import error, mutation, query, success
 from stack.graphql.resolvers.plugins import registry
-from stack.graphql.scope import create_scope_query, resolve_scope_targets
+from stack.graphql.scope import create_scope_query, resolve_scope_targets, create_scope_map_insert_queries
 from stack.graphql.utils import create_common_filters, map_kwargs
 
 
@@ -163,18 +163,43 @@ def attributes_exist(obj, info, names=None, scope="global", targets=None):
 
 	return lookups
 
-# @mutation.field("add_attribute")
-# def add_attribute(obj, info, name, value, scope="global", targets=None, force=False):
-# 	# Validate the name
-# 	if re.match('^[a-zA-Z_][a-zA-Z0-9_.]*$', name) is None:
-# 		return error(f'invalid attr name "{name}"')
+@mutation.field("add_attribute")
+def add_attribute(obj, info, name, value, shadow=False, force=False, scope="global", targets=None):
+	# Validate the name
+	if re.match('^[a-zA-Z_][a-zA-Z0-9_.]*$', name) is None:
+		return error(f'invalid attr name "{name}"')
 
-# 	# If we aren't forcing, make sure the attribute doesn't already exist
-# 	if not force:
-# 		pass
-# 	else:
-# 		# remove_attribute(obj, info, name, scope, targets)
-# 		pass
+	# If we aren't forcing, make sure the attribute doesn't already exist
+	if not force:
+		results = attributes(
+			obj, info, name=name, resolve=False, const=False,
+			scope=scope, targets=targets
+		)
+
+		if len(results):
+			return error(f'attr "{name}" already exists')
+	else:
+		# We are force adding, so make sure any existing attributes are gone
+		remove_attribute(obj, info, name=name, scope=scope, targets=targets)
+
+	# Create the scope_map entries and attributes
+	for query, values in create_scope_map_insert_queries(info.context, scope, targets):
+		# Create the scope map entry
+		info.context.execute(query, values)
+
+		# Now insert the new attribute
+		table = "shadow.attributes" if shadow else "attributes"
+
+		info.context.execute(f"""
+			INSERT INTO {table}(scope_map_id, name, value)
+			VALUES (LAST_INSERT_ID(), %s, %s)
+		""", (name, value))
+
+	# Now return our new data
+	return success(attributes=attributes(
+		obj, info, name=name, resolve=False, const=False, shadow=shadow,
+		scope=scope, targets=targets
+	))
 
 @mutation.field("remove_attribute")
 @map_kwargs({"id": "id_"})
