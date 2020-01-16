@@ -165,7 +165,4 @@ def create_scope_map_insert_queries(cursor, scope, targets=None):
 		VALUES (%s, %s, %s, %s, %s)
 	"""] * len(values)
 
-	print("Queries:", queries)
-	print("Values:", values)
-
 	return zip(queries, values)
